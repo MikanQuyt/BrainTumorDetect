@@ -1,10 +1,9 @@
-import json
-
 import albumentations as A
-import cv2
-import numpy as np
 import torch
+from pathlib import Path
 from torch.utils.data import Dataset
+
+from datasets.libs import *
 
 IMAGENET_MEAN = (0.485, 0.456, 0.406)
 IMAGENET_STD = (0.229, 0.224, 0.225)
@@ -40,7 +39,11 @@ class UnifiedBrainMRIDataset(Dataset):
     """Dataset thống nhất cho 4 bộ MRI não. Record JSON: img_path, mask_path, has_mask,
     has_tumor, sub_class_label, gt_box [xmin, ymin, xmax, ymax] (nếu thiếu thì suy từ mask)."""
 
-    def __init__(self, json_annotation_files, transform=None, train=True):
+    def __init__(self, json_annotation_files, transform=None, train=True, split=None, fold=None,
+                 root=None):
+        """split: lọc theo 'train'/'val'/'test'/'external_test'; fold: lọc fold CV của DS1;
+        root: thư mục gốc để nối với đường dẫn tương đối trong JSON (mặc định: gốc dự án)."""
+        self.root = Path(root) if root else Path(__file__).resolve().parents[1]
         if isinstance(json_annotation_files, (str, bytes)):
             json_annotation_files = [json_annotation_files]
 
@@ -48,6 +51,10 @@ class UnifiedBrainMRIDataset(Dataset):
         for json_file in json_annotation_files:
             with open(json_file, 'r', encoding='utf-8') as f:
                 self.data_records.extend(json.load(f))
+        if split is not None:
+            self.data_records = [r for r in self.data_records if r.get('split') == split]
+        if fold is not None:
+            self.data_records = [r for r in self.data_records if r.get('fold') == fold]
 
         if transform is not None:
             self.transform = transform
@@ -59,7 +66,8 @@ class UnifiedBrainMRIDataset(Dataset):
 
     @staticmethod
     def _read_image(path):
-        image = cv2.imread(path, cv2.IMREAD_COLOR)
+        data = np.fromfile(str(path), dtype=np.uint8)
+        image = cv2.imdecode(data, cv2.IMREAD_COLOR) if data.size else None
         if image is None:
             raise FileNotFoundError(f'Không đọc được ảnh: {path}')
         return cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
@@ -71,13 +79,18 @@ class UnifiedBrainMRIDataset(Dataset):
             return None
         return [float(xs.min()), float(ys.min()), float(xs.max() + 1), float(ys.max() + 1)]
 
+    @staticmethod
+    def _read_gray(path):
+        data = np.fromfile(str(path), dtype=np.uint8)
+        return cv2.imdecode(data, cv2.IMREAD_GRAYSCALE) if data.size else None
+
     def __getitem__(self, idx):
         record = self.data_records[idx]
-        image = self._read_image(record['img_path'])
+        image = self._read_image(self.root / record['img_path'])
         h, w = image.shape[:2]
 
         if record.get('has_mask') and record.get('mask_path'):
-            mask = cv2.imread(record['mask_path'], cv2.IMREAD_GRAYSCALE)
+            mask = self._read_gray(self.root / record['mask_path'])
             if mask is None:
                 raise FileNotFoundError(f"Không đọc được mask: {record['mask_path']}")
             if mask.shape != (h, w):
