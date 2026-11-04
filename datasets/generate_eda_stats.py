@@ -13,6 +13,11 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
+import sys
+from pathlib import Path as _P
+
+sys.path.insert(0, str(_P(__file__).resolve().parents[1]))
+
 from datasets.libs import *
 
 DATASETS = ['navoneel', 'indk214', 'brisc2025', 'brats2020']  # DS1..DS4

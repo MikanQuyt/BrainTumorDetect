@@ -13,6 +13,11 @@ from pathlib import Path
 
 from sklearn.model_selection import StratifiedGroupKFold, StratifiedKFold
 
+import sys
+from pathlib import Path as _P
+
+sys.path.insert(0, str(_P(__file__).resolve().parents[1]))
+
 from datasets.libs import *
 
 IMG_EXTS = {'.jpg', '.jpeg', '.png', '.bmp', '.tif', '.tiff'}

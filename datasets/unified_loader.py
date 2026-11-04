@@ -30,7 +30,7 @@ def build_train_transform():
 def build_val_transform():
     """Không tăng cường, giữ định dạng đầu ra đồng nhất."""
     return A.Compose(
-        [],
+        [A.NoOp()],
         bbox_params=A.BboxParams(format='pascal_voc', label_fields=['class_labels']),
     )
 
