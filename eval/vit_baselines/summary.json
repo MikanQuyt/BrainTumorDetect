@@ -1,0 +1,98 @@
+{
+  "summary": {
+    "indk214/linear": {
+      "n_runs": 1,
+      "final_train_acc": 0.5,
+      "final_val_acc": 0.4881141185760498,
+      "final_val_recall": 0.0,
+      "final_val_specificity": 1.0,
+      "val_acc_std_over_epochs": 0.0022412289143143083,
+      "val_acc_drop_from_peak": 0.0
+    },
+    "indk214/full": {
+      "n_runs": 1,
+      "final_train_acc": 0.885,
+      "final_val_acc": 0.8938193321228027,
+      "final_val_recall": 0.9969040247678018,
+      "final_val_specificity": 0.9967532467532467,
+      "val_acc_std_over_epochs": 0.0687268618314206,
+      "val_acc_drop_from_peak": 0.0
+    },
+    "brisc2025/linear": {
+      "n_runs": 1,
+      "final_train_acc": 0.44,
+      "final_val_acc": 0.4442896842956543,
+      "final_val_recall": 1.0,
+      "final_val_specificity": NaN,
+      "val_acc_std_over_epochs": 0.060456305563162005,
+      "val_acc_drop_from_peak": 0.0
+    },
+    "brisc2025/full": {
+      "n_runs": 1,
+      "final_train_acc": 0.90625,
+      "final_val_acc": 0.9122562408447266,
+      "final_val_recall": 1.0,
+      "final_val_specificity": NaN,
+      "val_acc_std_over_epochs": 0.02731603884771378,
+      "val_acc_drop_from_peak": 0.0
+    }
+  },
+  "test": {
+    "indk214/split/linear": {
+      "accuracy": 0.4402420574886536,
+      "sensitivity": 0.0,
+      "specificity": 1.0,
+      "precision": NaN,
+      "f1": 0.0,
+      "roc_auc": 0.9230704931735859,
+      "tp": 0,
+      "tn": 291,
+      "fp": 0,
+      "fn": 370,
+      "loss": 1.2404897202161365,
+      "multiclass_acc": 0.44024205207824707
+    },
+    "indk214/split/full": {
+      "accuracy": 0.9924357034795764,
+      "sensitivity": 0.9972972972972973,
+      "specificity": 0.9862542955326461,
+      "precision": 0.9892761394101877,
+      "f1": 0.9932705248990579,
+      "roc_auc": 0.999804959598774,
+      "tp": 369,
+      "tn": 287,
+      "fp": 4,
+      "fn": 1,
+      "loss": 0.5305709445710983,
+      "multiclass_acc": 0.8683812618255615
+    },
+    "brisc2025/split/linear": {
+      "accuracy": 1.0,
+      "sensitivity": 1.0,
+      "specificity": NaN,
+      "precision": 1.0,
+      "f1": 1.0,
+      "roc_auc": NaN,
+      "tp": 688,
+      "tn": 0,
+      "fp": 0,
+      "fn": 0,
+      "loss": 1.2006811485734097,
+      "multiclass_acc": 0.4389534890651703
+    },
+    "brisc2025/split/full": {
+      "accuracy": 1.0,
+      "sensitivity": 1.0,
+      "specificity": NaN,
+      "precision": 1.0,
+      "f1": 1.0,
+      "roc_auc": NaN,
+      "tp": 688,
+      "tn": 0,
+      "fp": 0,
+      "fn": 0,
+      "loss": 0.41300214099329574,
+      "multiclass_acc": 0.9127907156944275
+    }
+  }
+}
