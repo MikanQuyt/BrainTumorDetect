@@ -4,3 +4,5 @@ __pycache__/
 *.npy
 *.npz
 .ipynb_checkpoints/
+venv/
+dataset/
