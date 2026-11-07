@@ -1,0 +1,23 @@
+seed: 42
+
+data:
+  annotation_files:
+    - dataset/unified_2d_annotations.json   # DS1 navoneel, DS2 indk214, DS3 brisc2025
+    - dataset/brats2020_annotations.json    # DS4 brats2020
+  image_size_vit: 224
+  image_size_sam: 1024
+  batch_size: 32
+  num_workers: 2
+  augmentation:
+    horizontal_flip: 0.5
+    vertical_flip: 0.5
+    rotate_limit: 15
+    brightness_contrast: 0.2
+    bbox_min_visibility: 0.3
+
+labels:
+  0: No Tumor
+  1: Glioma
+  2: Meningioma
+  3: Pituitary
+
