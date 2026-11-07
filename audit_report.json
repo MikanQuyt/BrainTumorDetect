@@ -1,5 +1,5 @@
 {
-  "dataset_dir": "E:\\archive\\brisc2025",
+  "dataset_dir": "dataset/brisc2025/brisc2025",
   "manifest_checksums": {
     "manifest.csv": {
       "expected": "4eaa0c3b88ce1fd246d90382c1dcd1010cc126fff1bd3a4a415159661ca8b605",
@@ -15,9 +15,51 @@
   "missing_files": [],
   "corrupted_files": [],
   "dimension_mismatches": [],
+  "empty_masks": [],
   "invalid_labels": [],
   "segmentation_pairs_verified": 4793,
   "classification_images_verified": 6000,
+  "distinct_resolutions_count": 183,
+  "top_resolutions_wh": [
+    {
+      "size_wh": [
+        512,
+        512
+      ],
+      "count": 4881
+    },
+    {
+      "size_wh": [
+        369,
+        369
+      ],
+      "count": 363
+    },
+    {
+      "size_wh": [
+        216,
+        369
+      ],
+      "count": 354
+    },
+    {
+      "size_wh": [
+        256,
+        256
+      ],
+      "count": 32
+    },
+    {
+      "size_wh": [
+        187,
+        369
+      ],
+      "count": 21
+    }
+  ],
+  "duplicate_sha256_groups": 46,
+  "duplicate_sha256_extra_files": 50,
+  "cross_split_sha256_leak_groups": 7,
   "mask_pixel_values": [
     0,
     1,

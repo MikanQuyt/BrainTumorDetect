@@ -1,0 +1,4 @@
+split,n_samples,pct_samples,n_patients,n_with_mask,no_tumor,glioma,meningioma,pituitary
+train,4200,70.0,2547,3355,845,981,1145,1229
+val,900,15.0,550,719,181,210,245,264
+test,900,15.0,549,719,181,210,245,264
