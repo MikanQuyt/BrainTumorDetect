@@ -15,7 +15,7 @@ Moi ca (volume 3D) di qua cac buoc:
      dataset/brats2020_annotations.json tuong thich 100% voi UnifiedBrainMRIDataset.
 
 Cach chay:
-    python src/data/build_dataset.py ^
+    python data/build_dataset.py ^
         --data_dir "dataset/brats2020" ^
         --out_dir  "dataset/brats2020_png" --limit 5
 
@@ -51,7 +51,7 @@ CHANNELS = ["flair", "t1ce", "t2"]          # thu tu 3 kenh theo de bai: [FLAIR,
 H5_MOD_ORDER = ["flair", "t1", "t1ce", "t2"]
 NII_RE = re.compile(r"\.nii(\.gz)?$", re.IGNORECASE)
 H5_RE = re.compile(r"^volume_(\d+)_slice_(\d+)\.h5$", re.IGNORECASE)
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 
 # ---------------------------------------------------------------- tim file (.nii & .h5)

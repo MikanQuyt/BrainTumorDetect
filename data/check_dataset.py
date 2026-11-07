@@ -1,7 +1,7 @@
 """
 check_dataset.py - Kiem tra chat luong dataset da tao boi build_dataset.py.
 
-    python src/data/check_dataset.py --out_dir "dataset/brats2020_png"
+    python data/check_dataset.py --out_dir "dataset/brats2020_png"
 
 Kiem tra:
   1. Khong ca nao nam o 2 tap khac nhau (khong ro ri du lieu).

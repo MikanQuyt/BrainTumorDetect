@@ -2,10 +2,10 @@
 eda_brats.py - Khao sat (EDA) tap du lieu BraTS2020 (ho tro ca .nii/.nii.gz va .h5).
 
 Cach chay:
-    python src/data/eda_brats.py --data_dir "dataset/brats2020" --out_dir reports
+    python data/eda_brats.py --data_dir "dataset/brats2020" --out_dir reports/eda_ds4
 
     # chay thu nhanh tren 5 ca dau:
-    python src/data/eda_brats.py --data_dir "dataset/brats2020" --limit 5
+    python data/eda_brats.py --data_dir "dataset/brats2020" --limit 5
 
 Script tu dong nhan dien:
   - Dinh dang 3D NIfTI (.nii / .nii.gz): moi thu muc ca chua *flair*, *t1*, *t1ce*, *t2*, *seg*.
@@ -350,7 +350,7 @@ def overview(df):
 def main():
     ap = argparse.ArgumentParser(description="EDA BraTS2020 (.nii/.nii.gz hoac .h5)")
     ap.add_argument("--data_dir", default="dataset/brats2020", help="Thu muc goc chua du lieu BraTS2020")
-    ap.add_argument("--out_dir", default="reports", help="Thu muc luu ket qua")
+    ap.add_argument("--out_dir", default="reports/eda_ds4", help="Thu muc luu ket qua")
     ap.add_argument("--limit", type=int, default=None, help="Chi chay N ca dau (de thu)")
     args = ap.parse_args()
 
