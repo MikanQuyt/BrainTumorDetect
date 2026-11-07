@@ -1,0 +1,14 @@
+group,split,class_name,n
+DS1 navoneel,-,no_tumor,98
+DS1 navoneel,-,tumor (không rõ loại),155
+DS2 classification,testing,glioma,300
+DS2 classification,testing,meningioma,306
+DS2 classification,testing,no_tumor,405
+DS2 classification,testing,pituitary,300
+DS2 classification,training,glioma,1321
+DS2 classification,training,meningioma,1339
+DS2 classification,training,no_tumor,1595
+DS2 classification,training,pituitary,1457
+DS2 segmentation,-,glioma,554
+DS2 segmentation,-,meningioma,708
+DS2 segmentation,-,pituitary,930
