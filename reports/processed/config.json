@@ -7,7 +7,7 @@
   "test_ratio": 0.15,
   "min_brain_area": 500,
   "min_tumor_area": 1,
-  "neg_ratio": 1.0,
+  "neg_ratio": 1.5,
   "balance_splits": [
     "train"
   ],
