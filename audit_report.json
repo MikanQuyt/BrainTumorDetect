@@ -1,0 +1,45 @@
+{
+  "dataset_dir": "E:\\archive\\brisc2025",
+  "manifest_checksums": {
+    "manifest.csv": {
+      "expected": "4eaa0c3b88ce1fd246d90382c1dcd1010cc126fff1bd3a4a415159661ca8b605",
+      "actual": "4eaa0c3b88ce1fd246d90382c1dcd1010cc126fff1bd3a4a415159661ca8b605",
+      "match": true
+    },
+    "manifest.json": {
+      "expected": "ada767e102e9e7ee788b50188712dfe19ba825c250c362d831b560902c249e3a",
+      "actual": "ada767e102e9e7ee788b50188712dfe19ba825c250c362d831b560902c249e3a",
+      "match": true
+    }
+  },
+  "missing_files": [],
+  "corrupted_files": [],
+  "dimension_mismatches": [],
+  "invalid_labels": [],
+  "segmentation_pairs_verified": 4793,
+  "classification_images_verified": 6000,
+  "mask_pixel_values": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    246,
+    247,
+    248,
+    249,
+    250,
+    251,
+    252,
+    253,
+    254,
+    255
+  ],
+  "status": "PASS"
+}
