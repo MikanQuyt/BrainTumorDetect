@@ -1,0 +1,33 @@
+Tong so ca tim thay: 369
+  - co file seg: 369
+  - thieu modality: 0
+Kich thuoc anh (shape) va so ca:
+  240x240x155: 369
+Ca co shape khong dong nhat giua cac modality: 0
+Voxel spacing (mm):
+  1.00x1.00x1.00: 369
+Huong truc (orientation):
+  LPS: 369
+So lat z / ca: min=155, max=155
+So lat co nao / ca: min=98, mean=137.9, max=149
+So lat rong (khong co nao) / ca: mean=17.1
+--- Ton thuong (Whole Tumor = seg > 0) ---
+Tap nhan xuat hien:
+  {0,1,2,4}: 340 ca
+  {0,1,2}: 27 ca
+  {0,2,4}: 1 ca
+  {0,1,4}: 1 ca
+Ca co nhan la (ngoai 0,1,2,4): 0
+So lat co u / ca: min=23, mean=66.2, median=68, max=102
+Tong lat co u: 24422  |  tong lat nao khong u: 26476
+Ti le lat u / (u + lanh) toan tap: 0.480
+The tich WT (cm3): min=7.3, median=90.7, max=361.8
+Dien tich u lon nhat tren 1 lat (px): min=404, max=6444
+Ca co u nam ngoai vung nao: 36
+5 ca u nho nhat:
+             case_id  wt_voxels  tumor_slices
+BraTS20_Training_079       7285            29
+BraTS20_Training_099       7513            23
+BraTS20_Training_082      10101            34
+BraTS20_Training_341      12470            29
+BraTS20_Training_177      12952            32

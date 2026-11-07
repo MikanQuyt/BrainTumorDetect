@@ -1,0 +1,16 @@
+{
+  "data_dir": "C:/TTNT/DoAn/datasets/BraTS2020/archive (4)/BraTS2020_TrainingData",
+  "out_dir": "C:/TTNT/DoAn/datasets/BraTS2020_processed",
+  "limit": null,
+  "seed": 42,
+  "val_ratio": 0.15,
+  "test_ratio": 0.15,
+  "min_brain_area": 500,
+  "min_tumor_area": 1,
+  "neg_ratio": 1.5,
+  "balance_splits": [
+    "train"
+  ],
+  "dtype": "float16",
+  "n_cases_processed": 369
+}
