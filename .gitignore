@@ -1,0 +1,6 @@
+__pycache__/
+*.nii
+*.nii.gz
+*.npy
+*.npz
+.ipynb_checkpoints/
