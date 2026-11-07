@@ -1,94 +1,64 @@
-# BRISC 2025 - Tiền Xử Lý và Kiểm Định Dataset MRI U Não
+# BrainTumorDetect — Tuần 1: EDA, Cắt sát hộp sọ tự động (Skull Cropping + CLAHE) & Trích xuất Bounding Box cho Dataset 1 & 2
 
-Dự án thực hiện đầy đủ quy trình kiểm định chất lượng dữ liệu BRISC 2025, tiền xử lý tăng cường tương phản bằng CLAHE, trích xuất Bounding Box từ Segmentation Mask, và phân chia tập dữ liệu Train / Validation / Test theo tỷ lệ 70% / 15% / 15% đảm bảo **không rò rỉ dữ liệu theo bệnh nhân (Zero Patient Data Leakage)**.
+**Sinh viên thực hiện:** Thái Văn Huy · MSSV: 23130068 (`thai_van_huy_tuan1`)
 
----
+Nhánh **`thai_van_huy_tuan1`** thực hiện trọn vẹn 2 nhiệm vụ Tuần 1:
+1. **Tải và phân tích thống kê (EDA)** cho **Dataset 1 (`navoneel` – 253 ảnh)** và **Dataset 2 (`indk214` – Segmentation & Classification)**.
+2. **Lập trình và chạy script Cắt sát hộp sọ tự động (Automated Extreme-Point Skull Cropping bằng OpenCV + CLAHE)** trên toàn bộ Dataset 1 & 2; tự động trích xuất tọa độ hộp chuẩn **`[x_min, y_min, x_max, y_max]`** bao quanh Ground-Truth Mask của Dataset 2 xuất ra tệp **`ds2_annotations.json`**.
 
-## 1. Kết Quả Kiểm Định Chất Lượng Dataset (Data Quality Audit)
-
-- **Đường dẫn dataset gốc:** `E:\archive\brisc2025`
-- **Tính toàn vẹn Checksum SHA-256:**
-  - `manifest.csv`: **MATCH (Hợp lệ 100%)**
-  - `manifest.json`: **MATCH (Hợp lệ 100%)**
-- **Kiểm tra file thiếu (Missing files):** **0** / 15,586 file.
-- **Kiểm tra file lỗi/hỏng (Corrupted files):** **0** file lỗi đọc.
-- **Kiểm tra nhãn không hợp lệ (Invalid labels):** **0** nhãn sai (100% thuộc `gl`, `me`, `pi`, `no` và `ax`, `co`, `sa`).
-- **Tương thích kích thước ảnh MRI và Mask:**
-  - Tổng số cặp Segmentation đã kiểm tra: **4,793 cặp**
-  - Số cặp sai lệch kích thước: **0** (100% đều đạt chuẩn $512 \times 512$).
-- **Đặc điểm Mask:**
-  - Các giá trị pixel: `[0, 1, 2, ..., 10, 246, ..., 255]`.
-  - Có hiện tượng làm mịn biên (antialiasing), đã áp dụng binarization với ngưỡng `mask > 127` để thu được mask nhị phân hoàn hảo.
+> Xem chi tiết nội dung rà soát và chỉnh sửa tại: **[chinhsuaHuy.md](chinhsuaHuy.md)** và báo cáo thống kê chi tiết tại **[output_lan2/BAO_CAO_TUAN1.md](output_lan2/BAO_CAO_TUAN1.md)**.
 
 ---
 
-## 2. Kỹ Thuật Tiền Xử Lý Áp Dụng
+## 1. Cấu trúc thư mục trên nhánh
 
-### A. Tăng Cường Tương Phản CLAHE (Contrast Limited Adaptive Histogram Equalization)
-- **Tham số:** `clipLimit=2.0`, `tileGridSize=(8, 8)`
-- **Ý nghĩa y khoa:** Giúp phân tách rõ ranh giới giữa mô u, chất trắng (White Matter), chất xám (Gray Matter) và dịch não tủy (CSF) trong ảnh chụp cộng hưởng từ T1 mà không làm khuếch đại nhiễu nền.
-
-### B. Trích Xuất Bounding Box Từ Mask
-- Phát hiện biên u bằng `cv2.findContours`.
-- Trích xuất 2 định dạng:
-  1. **Pixel Box (`xyxy`):** `[xmin, ymin, xmax, ymax]` dùng cho segmentation ROI, crop vùng u.
-  2. **YOLO Normalized Box:** `[class_id, x_center, y_center, width, height]` chuẩn hóa $[0, 1]$ dùng cho các mô hình Object Detection (YOLOv8, YOLOv11, Faster R-CNN).
-
-### C. Phân Chia Dữ Liệu Train / Val / Test (70% / 15% / 15%) Theo Bệnh Nhân
-- **Gom cụm chuỗi lát cắt bệnh nhân:** 4,793 lát cắt u được gom thành **402 nhóm bệnh nhân** (`patient_id`) dựa trên chuỗi cắt giải phẫu liên tục của từng ca chụp.
-- **Phân chia bằng Group Stratified Split:**
-  - **Train:** **3,354 slices (~69.98%)** - 281 bệnh nhân
-  - **Validation:** **707 slices (~14.75%)** - 60 bệnh nhân
-  - **Test:** **732 slices (~15.27%)** - 61 bệnh nhân
-- **Khẳng định chống rò rỉ dữ liệu (Zero Data Leakage):**
-  $$\text{Train} \cap \text{Val} = \emptyset, \quad \text{Train} \cap \text{Test} = \emptyset, \quad \text{Val} \cap \text{Test} = \emptyset$$
-
----
-
-## 3. Cấu Trúc Thư Mục
-
-```
-E:\archive\brisc2025_pipeline\
-├── audit_dataset.py               # Script kiểm định chất lượng và checksum
-├── preprocess_pipeline.py         # Pipeline CLAHE, bbox extraction & patient split
-├── git_workflow.sh               # Script tự động hoá quy trình Git
-├── README.md                      # Tài liệu báo cáo dự án
-└── output\
-    ├── audit_report.json          # Báo cáo JSON kiểm định chất lượng
-    ├── brisc2025_processed_manifest.csv # Bảng tổng hợp toạ độ bbox và phân chia tập
-    └── samples\                   # Ảnh đối chứng 4 khung: Original - CLAHE - Mask - BBox
+```text
+BrainTumorDetect/
+├── data/
+│   ├── skull_crop.py                # Thuật toán Extreme-Point Skull Cropping (OpenCV), CLAHE & mask_to_box
+│   ├── ds12_index.py                # Bộ lập chỉ mục chuẩn hóa cho Dataset 1 (navoneel) và Dataset 2 (indk214)
+│   ├── eda_ds1_ds2.py               # Phân tích thống kê (EDA) & xuất biểu đồ cho Dataset 1 & 2
+│   ├── build_ds1_ds2.py             # Chạy Skull Cropping + CLAHE toàn bộ DS1 & DS2, xuất ds1/ds2_annotations.json
+│   ├── check_ds1_ds2.py             # Kiểm chứng tự động ảnh/mask đã cắt, tính nhị phân {0, 255} và tọa độ gt_box
+│   └── README.md                    # Hướng dẫn chi tiết mô-đun data/
+├── preprocess.py                    # Script tích hợp thống kê, cắt hộp sọ cực trị + CLAHE & xuất output_lan2/ds2_annotations.json
+├── output_lan2/
+│   ├── BAO_CAO_TUAN1.md             # Báo cáo phân tích thống kê (EDA) và kết quả tiền xử lý Dataset 1 & 2
+│   ├── dataset_statistics.json      # Toàn bộ số liệu thống kê kích thước, phân bố nhãn, ảnh trùng & diện tích u
+│   ├── ds2_annotations.json         # Tọa độ hộp chuẩn [x_min, y_min, x_max, y_max] của 2.192 cặp ảnh–mask Dataset 2
+│   └── ds_annotations.json          # Bản sao tương thích ngược
+├── dataset/
+│   ├── ds1_annotations.json         # 253 bản ghi chuẩn hóa của Dataset 1 (sau khi cắt hộp sọ + CLAHE)
+│   └── ds2_annotations.json         # 9.215 bản ghi chuẩn hóa của Dataset 2 (2.192 mẫu có mask + gt_box, 7.023 mẫu phân loại)
+├── reports/
+│   ├── eda_ds1_ds2/                 # Báo cáo & biểu đồ EDA: eda_summary.txt, class_counts.csv, fig_*.png
+│   └── build_ds1_ds2/               # Nhật ký cắt hộp sọ (crop_log.csv) và lưới ảnh kiểm chứng (check_samples.png)
+├── chinhsuaHuy.md                   # Báo cáo kiểm tra và các hạng mục đã hoàn thiện trên nhánh thai_van_huy_tuan1
+└── README.md
 ```
 
 ---
 
-## 4. Hướng Dẫn Git Workflow (Khi Được Thêm Vào Repo)
+## 2. Tóm tắt kết quả EDA – Dataset 1 & Dataset 2
 
-Git Bash đã được cài đặt sẵn trên máy tại `C:\Program Files\Git\git-bash.exe`.
+- **Dataset 1 (`navoneel`)**: **253 ảnh** (`yes` – có u: **155**, `no` – không u: **98**), đã loại bỏ 253 tệp bản sao trong `brain_tumor_dataset/`; gồm **184 kích thước ảnh khác nhau** (`150×168` đến `1920×1427`), **0 ảnh hỏng**.
+- **Dataset 2 (`indk214` – Classification)**: **7.023 ảnh** (`Training`: **5.712**, `Testing`: **1.311**) thuộc 4 lớp (`no_tumor`: **2.000**, `pituitary`: **1.757**, `meningioma`: **1.645**, `glioma`: **1.621**).
+- **Dataset 2 (`indk214` – Segmentation)**: **2.192 cặp ảnh – mask** (`pituitary`: **930**, `meningioma`: **708**, `glioma`: **554**), đồng nhất kích thước `512 × 512`, **0 ảnh thiếu mask**, **0 mask rỗng**. Nền mask gốc có mức xám `2–3` do nén ảnh nên được nhị phân hóa bằng ngưỡng `>= 128` (`> 127`).
 
-Mở Git Bash và thực hiện tuần tự:
+---
+
+## 3. Hướng dẫn chạy lệnh
 
 ```bash
-# 1. Clone repository về máy
-git clone <URL_REPO_CUA_BAN>
-cd <TEN_THU_MUC_REPO>
+# Chạy phân tích thống kê (EDA) và xuất biểu đồ vào reports/eda_ds1_ds2/
+python -m data.eda_ds1_ds2
 
-# 2. Chuyển vào nhánh dev
-git checkout dev
+# Chạy Automated Extreme-Point Skull Cropping + CLAHE và xuất dataset/ds2_annotations.json
+python -m data.build_ds1_ds2
 
-# 3. Tạo và chuyển sang nhánh tính năng ten_minh_tuan1
-git checkout -b ten_minh_tuan1
+# Kiểm chứng tự động toàn bộ ảnh/mask đã cắt và tọa độ gt_box [x_min, y_min, x_max, y_max]
+python -m data.check_ds1_ds2
 
-# 4. Copy mã nguồn từ E:\archive\brisc2025_pipeline vào repo
-cp -r /e/archive/brisc2025_pipeline/* .
-
-# 5. Lưu lại commit
-git add .
-git commit -m "feat: Add BRISC 2025 audit, CLAHE enhancement, bbox extraction, and patient split 70/15/15"
-
-# 6. Quay trở lại nhánh dev và gộp nhánh
-git checkout dev
-git merge ten_minh_tuan1
-
-# 7. Đẩy lên nhánh dev trên remote repo
-git push origin dev
+# Hoặc chạy script tích hợp preprocess.py để xuất ra output_lan2/ds2_annotations.json
+python preprocess.py --navoneel dataset/navoneel --indk214 dataset/indk214 --output output_lan2
 ```

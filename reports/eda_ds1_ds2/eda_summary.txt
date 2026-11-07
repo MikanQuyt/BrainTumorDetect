@@ -1,0 +1,20 @@
+== TỔNG QUAN ==
+DS1 navoneel: 253 ảnh | kích thước: {(225, 225): 18, (630, 630): 10, (201, 251): 5} | kênh: {1: 30, 3: 218, 4: 5}
+   phân bố lớp: {'tumor (không rõ loại)': 155, 'no_tumor': 98}
+   độ sáng TB 63.3 | tỷ lệ pixel tối (<45) TB 0.45
+DS2 classification: 7023 ảnh | kích thước: {(512, 512): 4742, (225, 225): 332, (630, 630): 90} | kênh: {1: 7023}
+   phân bố lớp: {'no_tumor': 2000, 'pituitary': 1757, 'meningioma': 1645, 'glioma': 1621}
+   độ sáng TB 67.5 | tỷ lệ pixel tối (<45) TB 0.50
+DS2 segmentation: 2192 ảnh | kích thước: {(512, 512): 2192} | kênh: {1: 2192}
+   phân bố lớp: {'pituitary': 930, 'meningioma': 708, 'glioma': 554}
+   độ sáng TB 60.3 | tỷ lệ pixel tối (<45) TB 0.53
+Ảnh hỏng/không đọc được: 0
+DS1 tổng 253 ảnh (kỳ vọng 253): có u 155, không u 98
+DS1 có 184 kích thước ảnh khác nhau (cần resize đồng nhất)
+DS2 classification theo tập gốc: {'training': 5712, 'testing': 1311}
+DS2 segmentation: ảnh thiếu mask 0
+DS2 mask: lệch kích thước 0, rỗng 0, nền mask (giá trị nhỏ nhất) {3: 2166, 2: 26}
+   mask có pixel trung gian (8<v<247): 0.2% | nền mask khác 0: 100.0% (thường = 3) => nhị phân hóa bằng ngưỡng 127, KHÔNG dùng '> 0' (sẽ coi cả ảnh là u)
+   glioma: n=554, diện tích u TB 1.85% (min 0.11%, max 6.86%), số thành phần liên thông TB 1.00
+   meningioma: n=708, diện tích u TB 2.17% (min 0.11%, max 9.71%), số thành phần liên thông TB 1.00
+   pituitary: n=930, diện tích u TB 1.13% (min 0.12%, max 7.15%), số thành phần liên thông TB 1.00

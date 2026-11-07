@@ -13,12 +13,25 @@ import cv2
 import numpy as np
 from PIL import Image
 
+REPO_ROOT = Path(__file__).resolve().parent
 DOWNLOADS = Path.home() / "Downloads"
-NAVONEEL_DIR = DOWNLOADS / "navoneel"
-INDK214_DIR = DOWNLOADS / "indk214"
-OUTPUT_DIR = Path(__file__).resolve().parent / "output"
+NAVONEEL_DIR = (REPO_ROOT / "dataset" / "navoneel") if (REPO_ROOT / "dataset" / "navoneel").exists() else (DOWNLOADS / "navoneel")
+INDK214_DIR = (REPO_ROOT / "dataset" / "indk214") if (REPO_ROOT / "dataset" / "indk214").exists() else (DOWNLOADS / "indk214")
+OUTPUT_DIR = REPO_ROOT / "output_lan2"
 
 Box = tuple[int, int, int, int]
+
+
+def apply_clahe(
+    image: np.ndarray,
+    clip_limit: float = 2.0,
+    tile_grid_size: tuple[int, int] = (8, 8),
+) -> np.ndarray:
+    """Áp dụng bộ lọc tăng cường tương phản cục bộ CLAHE (OpenCV) lên ảnh xám hoặc ảnh đa kênh."""
+    clahe = cv2.createCLAHE(clipLimit=clip_limit, tileGridSize=tile_grid_size)
+    if image.ndim == 2:
+        return clahe.apply(image)
+    return np.stack([clahe.apply(image[..., ch]) for ch in range(image.shape[2])], axis=-1)
 
 
 def grayscale(image: Image.Image) -> np.ndarray:
@@ -66,13 +79,21 @@ def head_box(gray: np.ndarray) -> tuple[Box, str]:
 
     radius = max(1, round(0.006 * short_side))
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2 * radius + 1, 2 * radius + 1))
+    foreground = cv2.erode(foreground, None, iterations=2)
+    foreground = cv2.dilate(foreground, None, iterations=2)
     foreground = cv2.morphologyEx(foreground, cv2.MORPH_OPEN, kernel)
     foreground = cv2.morphologyEx(foreground, cv2.MORPH_CLOSE, kernel)
     contours, _ = cv2.findContours(foreground, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     head = max(contours, key=cv2.contourArea, default=None)
     if head is None or cv2.contourArea(head) < 0.035 * h * w:
         return full_frame, "low_confidence"
-    x, y, box_w, box_h = cv2.boundingRect(head)
+    # Automated Extreme-Point Skull Cropping: 4 điểm cực trị (Tây, Đông, Bắc, Nam) của contour hộp sọ
+    ext_west = int(head[:, :, 0].min())
+    ext_east = int(head[:, :, 0].max())
+    ext_north = int(head[:, :, 1].min())
+    ext_south = int(head[:, :, 1].max())
+    x, y = ext_west, ext_north
+    box_w, box_h = ext_east - ext_west + 1, ext_south - ext_north + 1
     if box_w < 0.25 * w or box_h < 0.25 * h:
         return full_frame, "low_confidence"
 
@@ -265,11 +286,15 @@ def process_sample(
             "skull_bbox_xyxy": box,
             "mask_bbox_xyxy": tumor_box,
             "mask_bbox_crop_xyxy": tumor_crop_box,
+            "gt_box": list(tumor_crop_box) if tumor_crop_box is not None else None,
             "mask_area_pixels": pixels,
             "crop_status": status,
         }
 
-    export_png(image.crop(box), output / image_out)
+    cropped_pil = image.crop(box)
+    cropped_arr = grayscale(cropped_pil) if image.mode in ("L", "P") else np.asarray(cropped_pil.convert("RGB"))
+    clahe_arr = apply_clahe(cropped_arr)
+    export_png(Image.fromarray(clahe_arr), output / image_out)
     x1, y1, x2, y2 = box
     measurement = Measurement(
         label=sample.label,
@@ -388,7 +413,7 @@ def run(navoneel: Path, indk214: Path, output: Path) -> None:
                 if index % 500 == 0 or index == len(samples):
                     print(f"{root.name}: {index}/{len(samples)} MRI images exported", flush=True)
 
-        write_json(staged / "ds_annotations.json", {
+        payload = {
             "schema_version": 1,
             "dataset": "indk214",
             "coordinate_format": "xyxy, zero-based, x_max/y_max exclusive",
@@ -397,7 +422,9 @@ def run(navoneel: Path, indk214: Path, output: Path) -> None:
             "mask_foreground_min_intensity": MASK_THRESHOLD,
             "annotation_count": len(annotations),
             "annotations": annotations,
-        })
+        }
+        write_json(staged / "ds2_annotations.json", payload)
+        write_json(staged / "ds_annotations.json", payload)
         write_json(staged / "dataset_statistics.json", {
             "navoneel_image_files_including_aliases": len(nav_paths),
             "navoneel_verified_archive_aliases_excluded": aliases,

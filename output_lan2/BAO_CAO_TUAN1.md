@@ -1,8 +1,9 @@
-# Thống kê và tiền xử lý hai bộ ảnh MRI
+# Thống kê và tiền xử lý hai bộ ảnh MRI (Dataset 1 & Dataset 2)
 
 **Thái Văn Huy · 23130068**
 
-Số liệu được tính trên hai bộ dữ liệu Kaggle sau khi giải nén. Các bảng dưới đây tổng hợp kết quả từ [dataset_statistics.json](dataset_statistics.json). [Kaggle navoneel](https://www.kaggle.com/datasets/navoneel/brain-mri-images-for-brain-tumor-detection/data) · [Kaggle indk214](https://www.kaggle.com/datasets/indk214/brain-tumor-dataset-segmentation-and-classification)
+Số liệu được tính trên hai bộ dữ liệu Kaggle sau khi giải nén. Các bảng dưới đây tổng hợp kết quả từ [dataset_statistics.json](dataset_statistics.json) và báo cáo biểu đồ tại [`../reports/eda_ds1_ds2/`](../reports/eda_ds1_ds2/).  
+[Kaggle navoneel](https://www.kaggle.com/datasets/navoneel/brain-mri-images-for-brain-tumor-detection/data) · [Kaggle indk214](https://www.kaggle.com/datasets/indk214/brain-tumor-dataset-segmentation-and-classification)
 
 ## Số lượng và phân bố nhãn
 
@@ -55,14 +56,12 @@ Hai ảnh được tính là trùng khi có cùng kích thước và cùng toàn
 
 Ở phần classification indk214, 189 nội dung ảnh xuất hiện ở cả hai split. Chúng tương ứng với 263 file train và **216 file test, chiếm 16,48% số file test**. Điểm đánh giá trên split gốc vì thế có thể cao hơn khả năng tổng quát hóa trên ảnh mới. Code giữ split gốc để đối chiếu với dữ liệu nguồn.
 
-## Crop vùng đầu
+## Cắt sát hộp sọ tự động (Automated Extreme-Point Skull Cropping + CLAHE)
 
-1. Chuyển bản dùng để dò khung sang ảnh xám, làm mượt bằng Gaussian và ước lượng mức nền từ bốn góc.
-2. Tạo ảnh nhị phân theo ngưỡng thích nghi. Phép mở giúp giảm nhiễu và chữ nhỏ, rồi phép đóng nối các khoảng đứt ngắn.
-3. Chọn contour ngoài có diện tích lớn nhất. Lấy hình chữ nhật bao contour và thêm biên an toàn bằng 2,5% cạnh ngắn của ảnh, tối thiểu 3 pixel.
-4. Cắt ảnh gốc theo khung và lưu PNG. Ở phần segmentation, cắt mask bằng chính khung đó và so số pixel u trước và sau crop.
-
-Khung vùng đầu là ước lượng từ cường độ ảnh. Với ảnh chụp vốn đã sát hoặc có nền nhiễu, khung tính được có thể phủ cả ảnh. Tọa độ box u được tính trực tiếp từ ground-truth mask. Môi trường kiểm tra kết quả dùng OpenCV 4.14.0, NumPy 2.3.5 và Pillow 13.0.0.
+1. Chuyển bản dùng để dò khung sang ảnh xám, làm mượt bằng Gaussian `(5 × 5)` và ước lượng mức nền từ bốn góc.
+2. Tạo ảnh nhị phân theo ngưỡng thích nghi, khử nhiễu rời rạc bằng `erode`/`dilate` và đóng mở hình thái học (`MORPH_OPEN`, `MORPH_CLOSE`).
+3. Chọn contour ngoài có diện tích lớn nhất, xác định **4 điểm cực trị (Tây $x_{\min}$, Đông $x_{\max}$, Bắc $y_{\min}$, Nam $y_{\max}$)** bao quanh hộp sọ và thêm biên an toàn.
+4. Cắt ảnh gốc theo khung hộp sọ, áp dụng bộ lọc tăng cường tương phản cục bộ **CLAHE** (`cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))`) và lưu PNG. Ở phần segmentation, cắt mask bằng chính khung đó và đối chiếu số pixel u trước và sau crop.
 
 | Tập | Đã xử lý | Khung nhỏ hơn ảnh | Giữ nguyên khung | Trung vị diện tích ảnh cắt bỏ |
 | --- | ---: | ---: | ---: | ---: |
@@ -73,9 +72,9 @@ Khung vùng đầu là ước lượng từ cường độ ảnh. Với ảnh ch
 
 Diện tích cắt bỏ được tính bằng `1 - diện tích khung crop / diện tích ảnh gốc`, với trung vị trên cả các ảnh giữ nguyên khung. Không có ca nào phải kích hoạt cơ chế giữ ảnh vì nguy cơ cắt mất pixel u.
 
-## Ground truth và annotation
+## Ground truth và annotation (`ds2_annotations.json`)
 
-Mask gốc thường có nền mức xám 3 và vùng u mức 255. Năm mask còn có mức xám trung gian. Ngưỡng `>= 128` tách vùng u và đưa mask xuất về hai mức 0 và 255. Cả 2.192 mask đều có pixel u.
+Mask gốc thường có nền mức xám 3 và vùng u mức 255. Năm mask còn có mức xám trung gian. Ngưỡng `>= 128` (hoặc `> 127`) tách vùng u và đưa mask xuất về hai mức 0 và 255. Cả 2.192 mask đều có pixel u. Tọa độ hộp chuẩn `gt_box = [x_min, y_min, x_max, y_max]` được xuất ra tệp [ds2_annotations.json](ds2_annotations.json) (và [`../dataset/ds2_annotations.json`](../dataset/ds2_annotations.json)).
 
 | Nhãn | Pixel u trung vị | Tỷ lệ u trung vị trên ảnh gốc | Kích thước box u trung vị |
 | --- | ---: | ---: | ---: |
@@ -83,17 +82,13 @@ Mask gốc thường có nền mức xám 3 và vùng u mức 255. Năm mask cò
 | Meningioma | 4.774 px | 1,821% | 88 × 84 px |
 | Pituitary tumor | 1.988,5 px | 0,759% | 52 × 53 px |
 
-Pituitary có nhiều ảnh nhất trong phần segmentation, đồng thời có tỷ lệ pixel u trung vị thấp nhất. Chênh lệch giữa nền và vùng u vì vậy đáng chú ý khi đọc thống kê theo pixel.
-
-Ví dụ với `DATASET/Segmentation/Glioma/enh_1841.png` trong [ds_annotations.json](ds_annotations.json).
+Ví dụ với `DATASET/Segmentation/Glioma/enh_1841.png` trong [ds2_annotations.json](ds2_annotations.json):
 
 | Trường | Giá trị |
 | --- | --- |
 | Kích thước ảnh gốc | 512 × 512 px |
 | Khung crop trên ảnh gốc | `[80, 30, 443, 460]` |
-| Box u trên ảnh gốc | `[164, 188, 252, 273]` |
-| Box u sau crop | `[84, 158, 172, 243]` |
+| Box u trên ảnh gốc (`mask_bbox_xyxy`) | `[164, 188, 252, 273]` |
+| Box u sau crop (`gt_box`) | `[84, 158, 172, 243]` |
 | Kích thước sau crop | 363 × 430 px |
 | Số pixel u trước và sau crop | 5.973 |
-
-Đối chiếu 11.660 PNG xuất ra với ảnh và mask gốc cho thấy tất cả ảnh crop khớp pixel với vùng cắt, ảnh và mask cùng kích thước, và cả 2.192 box u trước và sau crop khớp với giới hạn pixel u. Cả 2.192 mask giữ nguyên số pixel u đã xác định sau khi nhị phân hóa.
