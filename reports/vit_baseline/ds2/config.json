@@ -1,0 +1,37 @@
+{
+  "dataset": "ds2",
+  "classes": [
+    "no_tumor",
+    "glioma",
+    "meningioma",
+    "pituitary"
+  ],
+  "images": 7023,
+  "class_counts": {
+    "no_tumor": 2000,
+    "glioma": 1621,
+    "meningioma": 1645,
+    "pituitary": 1757
+  },
+  "exact_grayscale_groups": 6597,
+  "model": "vit_tiny_patch16_224.augreg_in21k_ft_in1k",
+  "weights_sha256": null,
+  "seed": 42,
+  "image_size": 112,
+  "device": "cpu",
+  "bf16_backbone": false,
+  "batch_size": 32,
+  "epochs_linear": 25,
+  "epochs_full": 8,
+  "lr_linear": 0.001,
+  "lr_full": 0.0001,
+  "weight_decay": 0.01,
+  "checkpoint_selection": "minimum validation cross entropy",
+  "recall_average": "macro over four classes",
+  "versions": {
+    "torch": "2.15.0+cpu",
+    "timm": "1.0.31",
+    "scikit_learn": "1.8.0",
+    "opencv": "4.14.0"
+  }
+}

@@ -1,0 +1,389 @@
+{
+  "navoneel_image_files_including_aliases": 506,
+  "navoneel_verified_archive_aliases_excluded": 253,
+  "indk214_image_files_including_masks": 11407,
+  "total_mri_images_processed": 9468,
+  "total_segmentation_pairs": 2192,
+  "groups": {
+    "navoneel": {
+      "images": 253,
+      "class_counts": {
+        "no": 98,
+        "yes": 155
+      },
+      "class_percent": {
+        "no": 38.735,
+        "yes": 61.265
+      },
+      "split_counts": {
+        "unsplit": 253
+      },
+      "split_class_counts": {
+        "unsplit": {
+          "no": 98,
+          "yes": 155
+        }
+      },
+      "width_px": {
+        "min": 150.0,
+        "p25": 225.0,
+        "median": 278.0,
+        "p75": 400.0,
+        "max": 1920.0
+      },
+      "height_px": {
+        "min": 168.0,
+        "p25": 248.0,
+        "median": 331.0,
+        "p75": 442.0,
+        "max": 1427.0
+      },
+      "most_common_sizes_wh": [
+        {
+          "size": [
+            225,
+            225
+          ],
+          "images": 18
+        },
+        {
+          "size": [
+            630,
+            630
+          ],
+          "images": 10
+        },
+        {
+          "size": [
+            201,
+            251
+          ],
+          "images": 5
+        },
+        {
+          "size": [
+            442,
+            442
+          ],
+          "images": 4
+        },
+        {
+          "size": [
+            512,
+            512
+          ],
+          "images": 4
+        }
+      ],
+      "modes": {
+        "L": 30,
+        "P": 1,
+        "RGB": 217,
+        "RGBA": 5
+      },
+      "extensions": {
+        ".jpeg": 6,
+        ".jpg": 245,
+        ".png": 2
+      },
+      "crop_status_counts": {
+        "cropped": 218,
+        "full_frame": 35
+      },
+      "image_area_removed_percent": {
+        "min": 0.0,
+        "p25": 2.579,
+        "median": 10.388,
+        "p75": 25.519,
+        "max": 58.524
+      },
+      "exact_grayscale_duplicates": {
+        "distinct_images": 228,
+        "duplicate_groups": 22,
+        "repeated_images_beyond_first": 25,
+        "conflicting_label_groups": 0
+      }
+    },
+    "indk214_classification": {
+      "images": 7023,
+      "class_counts": {
+        "glioma": 1621,
+        "meningioma": 1645,
+        "no_tumor": 2000,
+        "pituitary": 1757
+      },
+      "class_percent": {
+        "glioma": 23.081,
+        "meningioma": 23.423,
+        "no_tumor": 28.478,
+        "pituitary": 25.018
+      },
+      "split_counts": {
+        "test": 1311,
+        "train": 5712
+      },
+      "split_class_counts": {
+        "test": {
+          "glioma": 300,
+          "meningioma": 306,
+          "no_tumor": 405,
+          "pituitary": 300
+        },
+        "train": {
+          "glioma": 1321,
+          "meningioma": 1339,
+          "no_tumor": 1595,
+          "pituitary": 1457
+        }
+      },
+      "width_px": {
+        "min": 150.0,
+        "p25": 393.0,
+        "median": 512.0,
+        "p75": 512.0,
+        "max": 1920.0
+      },
+      "height_px": {
+        "min": 168.0,
+        "p25": 403.5,
+        "median": 512.0,
+        "p75": 512.0,
+        "max": 1446.0
+      },
+      "most_common_sizes_wh": [
+        {
+          "size": [
+            512,
+            512
+          ],
+          "images": 4742
+        },
+        {
+          "size": [
+            225,
+            225
+          ],
+          "images": 332
+        },
+        {
+          "size": [
+            630,
+            630
+          ],
+          "images": 90
+        },
+        {
+          "size": [
+            236,
+            236
+          ],
+          "images": 81
+        },
+        {
+          "size": [
+            201,
+            251
+          ],
+          "images": 58
+        }
+      ],
+      "modes": {
+        "L": 7023
+      },
+      "extensions": {
+        ".jpg": 7023
+      },
+      "crop_status_counts": {
+        "cropped": 6552,
+        "full_frame": 471
+      },
+      "image_area_removed_percent": {
+        "min": 0.0,
+        "p25": 11.251,
+        "median": 23.515,
+        "p75": 33.823,
+        "max": 76.733
+      },
+      "exact_grayscale_duplicates": {
+        "distinct_images": 6597,
+        "duplicate_groups": 300,
+        "repeated_images_beyond_first": 426,
+        "conflicting_label_groups": 0
+      },
+      "exact_train_test_overlap": {
+        "distinct_shared_images": 189,
+        "train_images_in_shared_groups": 263,
+        "test_images_in_shared_groups": 216
+      }
+    },
+    "indk214_segmentation": {
+      "images": 2192,
+      "class_counts": {
+        "glioma": 554,
+        "meningioma": 708,
+        "pituitary": 930
+      },
+      "class_percent": {
+        "glioma": 25.274,
+        "meningioma": 32.299,
+        "pituitary": 42.427
+      },
+      "split_counts": {
+        "unsplit": 2192
+      },
+      "split_class_counts": {
+        "unsplit": {
+          "glioma": 554,
+          "meningioma": 708,
+          "pituitary": 930
+        }
+      },
+      "width_px": {
+        "min": 512.0,
+        "p25": 512.0,
+        "median": 512.0,
+        "p75": 512.0,
+        "max": 512.0
+      },
+      "height_px": {
+        "min": 512.0,
+        "p25": 512.0,
+        "median": 512.0,
+        "p75": 512.0,
+        "max": 512.0
+      },
+      "most_common_sizes_wh": [
+        {
+          "size": [
+            512,
+            512
+          ],
+          "images": 2192
+        }
+      ],
+      "modes": {
+        "L": 2192
+      },
+      "extensions": {
+        ".png": 2192
+      },
+      "crop_status_counts": {
+        "cropped": 2071,
+        "full_frame": 121
+      },
+      "image_area_removed_percent": {
+        "min": 0.0,
+        "p25": 14.834,
+        "median": 28.057,
+        "p75": 38.431,
+        "max": 76.64
+      },
+      "exact_grayscale_duplicates": {
+        "distinct_images": 2192,
+        "duplicate_groups": 0,
+        "repeated_images_beyond_first": 0,
+        "conflicting_label_groups": 0
+      },
+      "masks": 2192,
+      "empty_masks": 0,
+      "mask_by_class": {
+        "glioma": {
+          "masks": 554,
+          "nonempty_masks": 554,
+          "foreground_pixels": {
+            "min": 277.0,
+            "p25": 2354.25,
+            "median": 4268.0,
+            "p75": 6590.25,
+            "max": 17983.0
+          },
+          "foreground_percent": {
+            "min": 0.106,
+            "p25": 0.898,
+            "median": 1.628,
+            "p75": 2.514,
+            "max": 6.86
+          },
+          "bbox_width_px": {
+            "min": 16.0,
+            "p25": 55.0,
+            "median": 76.0,
+            "p75": 95.0,
+            "max": 165.0
+          },
+          "bbox_height_px": {
+            "min": 19.0,
+            "p25": 57.25,
+            "median": 79.0,
+            "p75": 103.0,
+            "max": 226.0
+          }
+        },
+        "meningioma": {
+          "masks": 708,
+          "nonempty_masks": 708,
+          "foreground_pixels": {
+            "min": 291.0,
+            "p25": 2620.75,
+            "median": 4774.0,
+            "p75": 7715.5,
+            "max": 25461.0
+          },
+          "foreground_percent": {
+            "min": 0.111,
+            "p25": 1.0,
+            "median": 1.821,
+            "p75": 2.943,
+            "max": 9.713
+          },
+          "bbox_width_px": {
+            "min": 16.0,
+            "p25": 64.0,
+            "median": 88.0,
+            "p75": 112.0,
+            "max": 335.0
+          },
+          "bbox_height_px": {
+            "min": 20.0,
+            "p25": 61.0,
+            "median": 84.0,
+            "p75": 109.0,
+            "max": 291.0
+          }
+        },
+        "pituitary": {
+          "masks": 930,
+          "nonempty_masks": 930,
+          "foreground_pixels": {
+            "min": 303.0,
+            "p25": 1135.75,
+            "median": 1988.5,
+            "p75": 3707.0,
+            "max": 18742.0
+          },
+          "foreground_percent": {
+            "min": 0.116,
+            "p25": 0.433,
+            "median": 0.759,
+            "p75": 1.414,
+            "max": 7.15
+          },
+          "bbox_width_px": {
+            "min": 21.0,
+            "p25": 40.0,
+            "median": 52.0,
+            "p75": 70.0,
+            "max": 186.0
+          },
+          "bbox_height_px": {
+            "min": 15.0,
+            "p25": 37.0,
+            "median": 53.0,
+            "p75": 76.0,
+            "max": 183.0
+          }
+        }
+      }
+    }
+  }
+}

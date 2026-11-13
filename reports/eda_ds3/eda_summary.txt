@@ -1,0 +1,20 @@
+== KIỂM ĐỊNH CHẤT LƯỢNG & THỐNG KÊ DATASET 3 (BRISC 2025) ==
+Tổng số mẫu duy nhất theo tác vụ: 6000 lát cắt T1 MRI (Segmentation có mask: 4793, Classification no_tumor: 1207)
+Đối chiếu classification_task (6000 ảnh) vs segmentation_task (4793 cặp):
+   - Số ảnh có u (gl, me, pi) lệch tên giữa 2 thư mục: 0
+   - Ảnh thiếu mask tương ứng: 0 | Mask mồ côi thiếu ảnh: 0
+   - Tên file sai quy cách: segmentation=0, classification=0
+   - Ảnh lỗi/hỏng không đọc được: 0 | Mask lỗi/hỏng: 0
+   - Lệch kích thước 1-1 giữa Ảnh và Mask: 0
+   - Mask rỗng sai quy cách (nhãn có u nhưng vùng u = 0 px): 0
+Phát hiện trùng lặp nội dung (SHA256): 46 nhóm (50 ảnh trùng dư), trong đó có 7 nhóm bị rò rỉ trực tiếp giữa train và test gốc của BRISC 2025!
+
+== THỐNG KÊ HÌNH ẢNH & MẶT NẠ (MASK) ==
+Số kích thước (W, H) khác nhau: 183 (phổ biến nhất: {(512, 512): 4881, (369, 369): 363, (216, 369): 354, (256, 256): 32, (187, 369): 21})
+Số kênh màu: {3: 3134, 1: 2866} | Độ sáng TB: 44.5 | Tỷ lệ pixel tối (<45): 0.55
+Phân bố lớp tổng thể: {'pituitary': 1757, 'meningioma': 1635, 'glioma': 1401, 'no_tumor': 1207}
+Phân bố mặt phẳng giải phẫu: {'sagittal': 2026, 'axial': 1993, 'coronal': 1981}
+Đặc trưng mức xám của Mask BRISC 2025: nền nhỏ nhất {0: 4793}, tỷ lệ mask có pixel biên trung gian (8<v<247): 0.4% => cần nhị phân hóa bằng ngưỡng 127 (binarize_mask) để tránh nhiễu nén ảnh.
+   - glioma: n=1401, diện tích u TB 1.87% (min 0.05%, max 9.77%), số thành phần liên thông TB 1.11
+   - meningioma: n=1635, diện tích u TB 2.25% (min 0.01%, max 17.35%), số thành phần liên thông TB 1.03
+   - pituitary: n=1757, diện tích u TB 1.04% (min 0.06%, max 6.49%), số thành phần liên thông TB 1.04

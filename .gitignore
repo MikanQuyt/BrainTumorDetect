@@ -1,3 +1,4 @@
+
 # ==============================================================================
 # .gitignore cho BrainTumorDetect
 # ==============================================================================
@@ -37,3 +38,23 @@ archive/
 76622
 .DS_Store
 Thumbs.db
+
+venv/
+dataset/*
+!dataset/ds1_annotations.json
+!dataset/ds2_annotations.json
+!dataset/ds3_annotations.json
+!dataset/brats2020_annotations.json
+checkpoints/*
+!checkpoints/.gitkeep
+__pycache__/
+*.pyc
+*.pth
+*.pt
+*.safetensors
+*.h5
+*.nii
+*.nii.gz
+*.zip
+chinhsua*.md
+

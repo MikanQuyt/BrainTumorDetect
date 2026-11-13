@@ -1,0 +1,67 @@
+[
+  {
+    "fold": 1,
+    "train": 4930,
+    "validation": 1064,
+    "test": 1029,
+    "trainable_parameters": 5496964,
+    "best_epoch_by_val_loss": 8,
+    "best_epoch": {
+      "mode": "full_finetune",
+      "fold": 1,
+      "epoch": 8,
+      "train_loss": 0.08058827659921011,
+      "train_accuracy": 0.9730223123732251,
+      "val_loss": 0.23057255172730756,
+      "val_accuracy": 0.9398496240601504
+    },
+    "last_epoch": {
+      "mode": "full_finetune",
+      "fold": 1,
+      "epoch": 8,
+      "train_loss": 0.08058827659921011,
+      "train_accuracy": 0.9730223123732251,
+      "val_loss": 0.23057255172730756,
+      "val_accuracy": 0.9398496240601504
+    },
+    "train_loss_down_val_loss_up_after_best": false,
+    "test_loss": 0.2650571984255723,
+    "accuracy": 0.9387755102040817,
+    "precision": 0.9400077897776734,
+    "recall": 0.9353998137457631,
+    "f1": 0.9362146269084617,
+    "tumor_recall": 0.9866131191432396,
+    "class_recall": {
+      "no_tumor": 0.9929078014184397,
+      "glioma": 0.8930041152263375,
+      "meningioma": 0.859504132231405,
+      "pituitary": 0.9961832061068703
+    },
+    "confusion_matrix": [
+      [
+        280,
+        0,
+        0,
+        2
+      ],
+      [
+        2,
+        217,
+        9,
+        15
+      ],
+      [
+        8,
+        13,
+        208,
+        13
+      ],
+      [
+        0,
+        0,
+        1,
+        261
+      ]
+    ]
+  }
+]

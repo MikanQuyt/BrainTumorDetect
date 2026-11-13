@@ -1,0 +1,24 @@
+seed: 42
+
+data:
+  annotation_files:
+    - dataset/ds1_annotations.json          # DS1: Navoneel (253 anh, 5-Fold CV)
+    - dataset/ds2_annotations.json          # DS2: indk214 (Segmentation & Classification)
+    - dataset/ds3_annotations.json          # DS3: BRISC 2025 (Stratified 70/15/15)
+    - dataset/brats2020_annotations.json    # DS4: BraTS 2020 (2D Axial [FLAIR, T1ce, T2] + WT)
+  image_size_vit: 224
+  image_size_sam: 1024
+  batch_size: 32
+  num_workers: 2
+  augmentation:
+    horizontal_flip: 0.5
+    vertical_flip: 0.5
+    rotate_limit: 15
+    brightness_contrast: 0.2
+    bbox_min_visibility: 0.3
+
+labels:
+  0: No Tumor
+  1: Glioma
+  2: Meningioma
+  3: Pituitary
