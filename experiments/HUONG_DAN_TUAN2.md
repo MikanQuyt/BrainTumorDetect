@@ -26,14 +26,14 @@ python -m pip install -r experiments/requirements-vit.txt
 
 Lệnh cài trên dùng PyTorch CPU. Máy chạy GPU NVIDIA có thể chọn gói CUDA tương ứng theo trang PyTorch, rồi cài các thư viện còn lại như trên. Chương trình tự chọn CUDA khi PyTorch nhận GPU. [PyTorch Get Started](https://pytorch.org/get-started/locally/)
 
-Hai lệnh sau tái lập cấu hình đã đo ở ảnh **112 × 112**. Chọn `--bf16` trên phần cứng hỗ trợ BF16. Đổi tên `--output` khi chạy lại vào một thư mục mới.
+Hai lệnh sau dùng cấu hình của báo cáo tuần 2, ảnh **112 × 112** và **FP32 trên CPU**. Chọn thư mục mới với `--output` khi chạy lại.
 
 ```bash
-python -m experiments.train_vit_baseline --dataset ds1 --image-size 112 --bf16 --output runs/tuan2_ds1
-python -m experiments.train_vit_baseline --dataset ds2 --image-size 112 --bf16 --output runs/tuan2_ds2
+python -m experiments.train_vit_baseline --dataset ds1 --image-size 112 --device cpu --output runs/tuan2_ds1
+python -m experiments.train_vit_baseline --dataset ds2 --image-size 112 --device cpu --output runs/tuan2_ds2
 ```
 
-Có thể bỏ `--bf16` để chạy FP32. Kích thước mặc định là **224 × 224** theo cấu hình ViT của repo. Lần đầu chương trình tải checkpoint ViT-Tiny từ Hugging Face. Nếu đã có file checkpoint `.safetensors`, truyền thêm `--weights "duong/dan/model.safetensors"`. [Checkpoint ViT-Tiny](https://huggingface.co/timm/vit_tiny_patch16_224.augreg_in21k_ft_in1k)
+Có thể thêm `--bf16` trên phần cứng hỗ trợ BF16. Kích thước mặc định là **224 × 224** theo cấu hình ViT của repo. Lần đầu chương trình tải checkpoint ViT-Tiny từ Hugging Face. Nếu đã có file checkpoint `.safetensors`, truyền thêm `--weights "duong/dan/model.safetensors"`. [Checkpoint ViT-Tiny](https://huggingface.co/timm/vit_tiny_patch16_224.augreg_in21k_ft_in1k)
 
 | File đầu ra | Nội dung |
 | --- | --- |
