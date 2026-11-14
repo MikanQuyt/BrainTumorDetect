@@ -1,4 +1,5 @@
-"""Unit tests kiểm định toàn diện kiến trúc ViT-LoRA, Hàm mất mát và Bộ Tự sinh Lời nhắc (Tuần 3)."""
+"""Unit tests kiểm định toàn diện kiến trúc ViT-LoRA, 
+Hàm mất mát và Bộ Tự sinh Lời nhắc (Tuần 3)."""
 from __future__ import annotations
 
 import tempfile

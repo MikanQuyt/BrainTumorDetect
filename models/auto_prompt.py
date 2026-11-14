@@ -127,24 +127,21 @@ def compute_layercam(
     model: nn.Module,
     x: torch.Tensor,
     target_class: torch.Tensor | int | None = None,
-    target_layers: Sequence[int] = (-4, -3, -2, -1),
+    target_layers: Sequence[int] = (-5, -4, -3, -2),
     no_tumor_class: int = 0,
 ) -> dict[str, torch.Tensor | list[torch.Tensor] | None]:
-    """Tính bản đồ nhiệt LayerCAM (Jiang et al., IEEE TIP 2021) kết hợp trích xuất Attention trong 1 lượt chạy.
+    """Tính bản đồ nhiệt LayerCAM cho ViT (kết hợp Token-level LayerCAM & Attention-level Grad-CAM/LayerCAM).
 
-    Khác với Grad-CAM (lấy trung bình toàn cục gradient), LayerCAM nhân từng phần tử giữa trọng số
-    gradient dương W_{i,k} = ReLU(∂y^c / ∂F_{i,k}) với hoạt hóa F_{i,k} tại từng vị trí patch i, giúp
-    bảo toàn chi tiết không gian của khối u nhỏ và đa ổ.
-
-    Nếu `target_class=None`, tự động chọn lớp khối u có logit cao nhất (bỏ qua lớp `no_tumor_class` khi
-    số lớp >= 2) để luôn tìm vùng nghi ngờ có u rõ nhất trên ảnh.
+    Trong kiến trúc ViT, token `[CLS]` ở tầng cuối (L-1) tổng hợp thông tin từ các patch token thông qua
+    ma trận chú ý `A^{(l)}[:, :, 0, 1:]` và hoạt hóa của các tầng ẩn trước đó `F^{(l)}[:, 1:, :]`.
+    Do đó hàm này kết hợp:
+      1. Token LayerCAM trên các tầng ẩn `target_layers`: ReLU(sum_k ReLU(∂y^c / ∂F_{i,k}) * F_{i,k}).
+      2. Attention LayerCAM trên các tầng cuối: mean_h( ReLU(∂y^c / ∂A_{h, 0, i}) * A_{h, 0, i} ).
+      3. Bản đồ chú ý không gian từ `box_head.spatial_heatmap` (nếu mô hình có nhánh `ViTDetBoxHead`).
     """
     layers = _get_vit_encoder_layers(model)
     num_layers = len(layers)
-    layer_indices = sorted({(idx if idx >= 0 else num_layers + idx) for idx in target_layers})
-    for idx in layer_indices:
-        if not (0 <= idx < num_layers):
-            raise IndexError(f"Chỉ số tầng LayerCAM {idx} vượt ngoài phạm vi [0, {num_layers - 1}].")
+    layer_indices = sorted({(idx if idx >= 0 else num_layers + idx) for idx in target_layers if -num_layers <= idx < num_layers})
 
     activations: dict[int, torch.Tensor] = {}
     gradients: dict[int, torch.Tensor] = {}
@@ -168,27 +165,33 @@ def compute_layercam(
 
         with torch.enable_grad():
             x_in = x.detach().clone().requires_grad_(True)
+            patch_tokens = None
             if hasattr(model, "forward"):
                 try:
                     out = model(x_in, return_dict=True, output_attentions=True)
                     logits = out["logits"]
                     pred_boxes = out.get("pred_boxes")
                     attentions = out.get("attentions")
+                    patch_tokens = out.get("patch_tokens")
                 except TypeError:
-                    # Tương thích với ViTBaseline
                     x_prep = model._prepare(x_in) if hasattr(model, "_prepare") else x_in
                     b_out = model.backbone(pixel_values=x_prep, output_attentions=True, return_dict=True)
                     cls_tok = b_out.last_hidden_state[:, 0]
+                    patch_tokens = b_out.last_hidden_state[:, 1:]
                     logits = model.head(model.drop(cls_tok))
                     pred_boxes = None
                     attentions = b_out.attentions
+
+            if attentions is not None:
+                for a in attentions:
+                    if a is not None and a.requires_grad:
+                        a.retain_grad()
 
             b, num_classes = logits.shape
             if target_class is None:
                 if num_classes == 2:
                     cls_idx = torch.ones(b, dtype=torch.long, device=logits.device)
                 else:
-                    # Chọn lớp bệnh lý (khác no_tumor_class) có logit lớn nhất để định vị u
                     tumor_logits = logits.clone()
                     tumor_logits[:, no_tumor_class] = -1e9
                     cls_idx = tumor_logits.argmax(dim=-1)
@@ -203,17 +206,38 @@ def compute_layercam(
 
         b = x.shape[0]
         layer_maps = []
+        # 1. Token-level LayerCAM từ các tầng ẩn trước tầng cuối
         for idx in layer_indices:
-            act = activations[idx].detach().float()[:, 1:, :]    # (B, 196, D)
-            grad = gradients.get(idx)
-            if grad is None:
+            if idx not in activations or idx not in gradients:
                 continue
-            grad_patch = grad.float()[:, 1:, :]                  # (B, 196, D)
+            act = activations[idx].detach().float()[:, 1:, :]    # (B, 196, D)
+            grad_patch = gradients[idx].float()[:, 1:, :]        # (B, 196, D)
             weights = F.relu(grad_patch)                         # ReLU(∂y^c / ∂F)
             cam = F.relu((weights * act).sum(dim=-1))            # (B, 196)
             side = int(math.isqrt(cam.shape[1]))
             cam_2d = cam.reshape(b, side, side)
-            layer_maps.append(_minmax_norm(cam_2d))
+            if float(cam_2d.max()) > 0.0:
+                layer_maps.append(_minmax_norm(cam_2d))
+
+        # 2. Attention-level LayerCAM trên 4 tầng Self-Attention cuối (bao gồm cả tầng cuối L-1)
+        if attentions is not None:
+            for a in attentions[-4:]:
+                if a is not None and a.grad is not None:
+                    a_cls = a.detach().float()[:, :, 0, 1:]          # (B, H, 196)
+                    g_cls = F.relu(a.grad.detach().float()[:, :, 0, 1:])
+                    att_cam = (g_cls * a_cls).mean(dim=1)            # (B, 196)
+                    side = int(math.isqrt(att_cam.shape[1]))
+                    att_cam_2d = att_cam.reshape(b, side, side)
+                    if float(att_cam_2d.max()) > 0.0:
+                        layer_maps.append(_minmax_norm(att_cam_2d))
+
+        # 3. Nếu mô hình có nhánh `box_head` đã huấn luyện, kết hợp thêm bản đồ chú ý không gian SFP
+        box_head = getattr(model, "box_head", None)
+        if box_head is not None and patch_tokens is not None and hasattr(box_head, "spatial_heatmap"):
+            with torch.no_grad():
+                sp_map_28 = box_head.spatial_heatmap(patch_tokens.detach())  # (B, 28, 28)
+                sp_map_14 = F.interpolate(sp_map_28.unsqueeze(1), size=(14, 14), mode="bilinear", align_corners=False).squeeze(1)
+                layer_maps.append(_minmax_norm(sp_map_14))
 
         if layer_maps:
             fused_layercam = _minmax_norm(torch.stack(layer_maps, dim=0).mean(dim=0))
@@ -237,15 +261,16 @@ def compute_layercam(
 def extract_brain_parenchyma_mask(
     images_224: torch.Tensor,
     out_size: tuple[int, int] = (1024, 1024),
-    erode_ratio: float = 0.055,
+    erode_ratio: float = 0.095,
     input_norm: str = "imagenet",
 ) -> torch.Tensor:
-    """Trích xuất Mặt nạ Nhu mô não (Brain Parenchyma Mask) loại bỏ viền hộp sọ sáng màu.
+    """Trích xuất Mặt nạ Nhu mô não (Brain Parenchyma Mask) loại bỏ viền hộp sọ và khung ảnh trắng.
 
     Từ ảnh đầu vào `images_224` (B, 3, 224, 224):
-      1. Khôi phục ảnh xám [0, 255] và nhị phân hóa vùng đầu (> 12) + lấp lỗ thủng (binary_fill_holes).
+      1. Khôi phục ảnh xám [0, 255], xóa viền khung ngoài 3% (tránh khung trắng của ảnh chụp),
+         nhị phân hóa vùng đầu và giữ lại thành phần liên thông lớn nhất + lấp lỗ thủng.
       2. Co hình thái học (Morphological Erosion) vào phía trong một khoảng `erode_ratio * min(H, W)`
-         để cắt bỏ hoàn toàn vành xương sọ sáng màu (nơi Attention của ViT dễ bị nhiễu).
+         để cắt bỏ hoàn toàn vành xương sọ và da đầu sáng màu (nơi Attention dễ bị bắt nhầm).
       3. Nội suy lên `out_size` (mặc định 1024x1024).
     """
     b, _, h, w = images_224.shape
@@ -258,24 +283,34 @@ def extract_brain_parenchyma_mask(
         img = ((img * 0.5) + 0.5).clamp(0.0, 1.0)
 
     gray_batch = (img.mean(dim=1).numpy() * 255.0).astype(np.uint8)
-    k_size = max(3, int(round(min(h, w) * erode_ratio)))
+    k_size = max(5, int(round(min(h, w) * erode_ratio)))
     if k_size % 2 == 0:
         k_size += 1
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (k_size, k_size))
+    border = max(3, int(round(0.03 * min(h, w))))
 
     masks_out = []
     for i in range(b):
-        g = gray_batch[i]
-        # Ngưỡng tách vùng đầu khỏi nền đen
-        thr_val = max(12, int(np.percentile(g, 15)))
+        g = gray_batch[i].copy()
+        # Xóa khung viền sát mép ảnh (khắc phục các ảnh Kaggle có khung viền trắng như Y10.png)
+        g[:border, :] = 0
+        g[h - border :, :] = 0
+        g[:, :border] = 0
+        g[:, w - border :] = 0
+
+        thr_val = max(15, int(np.percentile(g, 20)))
         binary = (g > thr_val).astype(np.uint8)
+        n_lbl, lbls, stats, _ = cv2.connectedComponentsWithStats(binary, connectivity=8)
+        if n_lbl > 1:
+            largest = 1 + int(np.argmax(stats[1:, cv2.CC_STAT_AREA]))
+            binary = (lbls == largest).astype(np.uint8)
         filled = ndimage.binary_fill_holes(binary > 0).astype(np.uint8)
         eroded = cv2.erode(filled, kernel, iterations=1)
 
         # Dự phòng cho ảnh kiểm thử nhân tạo (nếu co xong bị rỗng hoặc quá nhỏ < 5% diện tích)
         if eroded.sum() < 0.05 * (h * w):
             fallback = np.zeros((h, w), dtype=np.uint8)
-            pad_y, pad_x = max(2, int(0.06 * h)), max(2, int(0.06 * w))
+            pad_y, pad_x = max(4, int(0.08 * h)), max(4, int(0.08 * w))
             fallback[pad_y : h - pad_y, pad_x : w - pad_x] = 1
             eroded = fallback
 
@@ -291,15 +326,19 @@ def fuse_rollout_and_layercam(
     layercam_grid: torch.Tensor,
     parenchyma_mask: torch.Tensor | None = None,
     out_size: tuple[int, int] = (1024, 1024),
-    alpha: float = 0.65,
-    beta: float = 0.35,
+    alpha: float = 0.50,
+    beta: float = 0.40,
+    images_224: torch.Tensor | None = None,
+    input_norm: str = "imagenet",
 ) -> dict[str, torch.Tensor]:
     """Kết hợp bản đồ nhiệt Attention Rollout và LayerCAM, phóng lên `out_size` và lọc viền hộp sọ.
 
     Công thức kết hợp:
         M_linear = α * M_LayerCAM + (1 - α) * M_Rollout
         M_mult   = M_LayerCAM ⊙ M_Rollout
-        M_fused  = normalize( ((1 - β) * M_linear + β * M_mult) ⊙ Mask_Parenchyma )
+        M_fused  = normalize( ((1 - β) * M_linear + β * M_mult) ⊙ W_parenchyma )
+    Trong đó `W_parenchyma` làm mượt biên mặt nạ nhu mô não bằng biến đổi khoảng cách (Distance Transform)
+    kết hợp đặc trưng bất đối xứng bán cầu não (nếu truyền `images_224`) để triệt tiêu cực đại giả sát vỏ sọ.
     """
     roll_up = F.interpolate(
         rollout_grid.unsqueeze(1).float(),
@@ -325,7 +364,40 @@ def fuse_rollout_and_layercam(
         pm = parenchyma_mask.to(device=fused.device, dtype=fused.dtype)
         if pm.shape[-2:] != out_size:
             pm = F.interpolate(pm.unsqueeze(1), size=out_size, mode="nearest").squeeze(1)
-        fused = fused * pm
+        # Làm mượt vùng rìa sát hộp sọ bằng Distance Transform để ngăn các cực đại giả nằm ngay sát mép cắt sọ
+        pm_np = (pm.detach().cpu().numpy() > 0.5)
+        soft_masks = []
+        for i in range(pm_np.shape[0]):
+            dist = ndimage.distance_transform_edt(pm_np[i]).astype(np.float32)
+            dmax = float(dist.max())
+            if dmax > 0:
+                ramp = np.clip(dist / (0.18 * dmax), 0.0, 1.0) ** 1.5
+            else:
+                ramp = pm_np[i].astype(np.float32)
+            soft_masks.append(ramp)
+        soft_pm = torch.from_numpy(np.stack(soft_masks, axis=0)).to(device=fused.device, dtype=fused.dtype)
+
+        if images_224 is not None:
+            img = images_224.detach().to(device=fused.device, dtype=fused.dtype)
+            if input_norm == "imagenet":
+                mean = torch.tensor(IMAGENET_MEAN, device=img.device, dtype=img.dtype).view(1, 3, 1, 1)
+                std = torch.tensor(IMAGENET_STD, device=img.device, dtype=img.dtype).view(1, 3, 1, 1)
+                img = (img * std + mean).clamp(0.0, 1.0)
+            else:
+                img = ((img * 0.5) + 0.5).clamp(0.0, 1.0)
+            gray_up = F.interpolate(img.mean(dim=1, keepdim=True), size=out_size, mode="bilinear", align_corners=False).squeeze(1)
+            # Độ bất đối xứng bán cầu dương (Positive Contralateral Excess) + dị thường cường độ nội sọ
+            pos_asym = (gray_up - torch.flip(gray_up, dims=[-1])).clamp(min=0.0) * soft_pm
+            pm_denom = soft_pm.sum(dim=(-2, -1), keepdim=True).clamp(min=1.0)
+            pm_mean = (gray_up * soft_pm).sum(dim=(-2, -1), keepdim=True) / pm_denom
+            hyper = (gray_up - pm_mean).clamp(min=0.0) * soft_pm
+            sal = _minmax_norm(0.65 * pos_asym + 0.35 * hyper)
+            sal = F.avg_pool2d(sal.unsqueeze(1), kernel_size=31, stride=1, padding=15).squeeze(1)
+            sal = _minmax_norm(sal * soft_pm)
+            fused = (0.55 * fused + 0.45 * sal) * soft_pm
+            cam_up = _minmax_norm((0.65 * cam_up + 0.35 * sal) * soft_pm)
+        else:
+            fused = fused * soft_pm
 
     fused = _minmax_norm(fused)
     return {
@@ -345,8 +417,9 @@ def heatmap_to_box_and_points(
 
     Quy trình:
       1. Tìm tâm điểm cực đại `peak_pos = (x+, y+)` có giá trị nhiệt lớn nhất trong vùng nhu mô não.
-      2. Phân ngưỡng bản đồ nhiệt tại `threshold_ratio * max_val` (kết hợp ngưỡng Otsu trên vùng nhu mô),
-         tìm các thành phần liên thông (Connected Components) và chọn vùng liên thông chứa `peak_pos`.
+      2. Phân ngưỡng bản đồ nhiệt tại `threshold_ratio * max_val` (tự động siết ngưỡng theo phân vị nếu
+         vùng liên thông quá rộng so với diện tích nhu mô não), tìm các thành phần liên thông (Connected Components)
+         và chọn vùng liên thông chứa `peak_pos`.
       3. Đóng khung hộp giới hạn bao quanh thành phần liên thông đó và mở rộng biên thêm `+box_padding` (mặc định +8%).
       4. Chọn điểm âm `neg_point = (x-, y-)` nằm trong nhu mô não nhưng bên ngoài hộp giới hạn và có nhiệt độ thấp nhất.
     """
@@ -376,12 +449,25 @@ def heatmap_to_box_and_points(
     peak_val = max(float(hm[py, px]), 1e-6)
 
     # 2. Nhị phân hóa vùng nóng và chọn thành phần liên thông chứa Peak Point
+    pm_area = max(1.0, float(pm_bool.sum()))
     thr = threshold_ratio * peak_val
-    binary = ((hm >= thr) & pm_bool).astype(np.uint8)
-    num_labels, labels, stats, _ = cv2.connectedComponentsWithStats(binary, connectivity=8)
+    comp_label = 0
+    stats = None
+    for ratio_try in (threshold_ratio, 0.50, 0.62, 0.72, 0.80):
+        cur_thr = max(thr, ratio_try * peak_val)
+        binary = ((hm >= cur_thr) & pm_bool).astype(np.uint8)
+        num_labels, labels, cur_stats, _ = cv2.connectedComponentsWithStats(binary, connectivity=8)
+        lbl = int(labels[py, px]) if num_labels > 1 else 0
+        if lbl > 0:
+            comp_label = lbl
+            stats = cur_stats
+            comp_area = float(cur_stats[lbl, cv2.CC_STAT_AREA])
+            bw_cur = float(cur_stats[lbl, cv2.CC_STAT_WIDTH])
+            bh_cur = float(cur_stats[lbl, cv2.CC_STAT_HEIGHT])
+            if comp_area <= 0.28 * pm_area and (bw_cur * bh_cur) <= 0.42 * pm_area:
+                break
 
-    comp_label = int(labels[py, px]) if num_labels > 1 else 0
-    if comp_label > 0:
+    if comp_label > 0 and stats is not None:
         x0 = float(stats[comp_label, cv2.CC_STAT_LEFT])
         y0 = float(stats[comp_label, cv2.CC_STAT_TOP])
         bw = float(stats[comp_label, cv2.CC_STAT_WIDTH])
@@ -526,6 +612,8 @@ class AutoPromptGenerator(nn.Module):
             out_size=self.out_size,
             alpha=self.alpha_cam,
             beta=self.beta_mult,
+            images_224=images_224,
+            input_norm=input_norm,
         )
         fused_heatmap = maps["fused_heatmap"]
 
@@ -583,12 +671,29 @@ class AutoPromptGenerator(nn.Module):
             )
             final_boxes_1024 = final_boxes_norm * scale
 
-        # Đảm bảo tâm điểm dương nằm bên trong hộp giới hạn cuối cùng; nếu lệch ra ngoài thì kẹp về vùng hợp lệ
-        clamped_peak_x = torch.clamp(peak_pts_t[:, 0], min=final_boxes_1024[:, 0], max=final_boxes_1024[:, 2])
-        clamped_peak_y = torch.clamp(peak_pts_t[:, 1], min=final_boxes_1024[:, 1], max=final_boxes_1024[:, 3])
-        clamped_peak = torch.stack([clamped_peak_x, clamped_peak_y], dim=-1)
+        # Tìm tâm điểm dương cực đại (Peak Positive Point) nằm bên trong vùng lõi của hộp giới hạn cuối cùng
         point_coords_t = point_coords_t.clone()
-        point_coords_t[:, 0, :] = clamped_peak
+        h_out, w_out = self.out_size
+        for i in range(b):
+            bx0, by0, bx1, by1 = [float(v) for v in final_boxes_1024[i].detach().cpu()]
+            bw_i, bh_i = max(2.0, bx1 - bx0), max(2.0, by1 - by0)
+            # Thu hẹp 10% biên hộp để điểm dương luôn rơi vào vùng lõi khối u thay vì dính trên cạnh hộp
+            ix0 = int(np.clip(round(bx0 + 0.10 * bw_i), 0, w_out - 1))
+            iy0 = int(np.clip(round(by0 + 0.10 * bh_i), 0, h_out - 1))
+            ix1 = int(np.clip(round(bx1 - 0.10 * bw_i), ix0 + 1, w_out))
+            iy1 = int(np.clip(round(by1 - 0.10 * bh_i), iy0 + 1, h_out))
+            sub_hm = fused_heatmap[i, iy0:iy1, ix0:ix1].detach().cpu().numpy()
+            if sub_hm.size > 0:
+                sub_idx = int(np.argmax(sub_hm))
+                sy, sx = divmod(sub_idx, sub_hm.shape[1])
+                px_i, py_i = float(ix0 + sx), float(iy0 + sy)
+            else:
+                px_i = float(np.clip(peak_pts_t[i, 0].item(), bx0, bx1))
+                py_i = float(np.clip(peak_pts_t[i, 1].item(), by0, by1))
+            peak_pts_t[i, 0] = px_i
+            peak_pts_t[i, 1] = py_i
+            point_coords_t[i, 0, 0] = px_i
+            point_coords_t[i, 0, 1] = py_i
 
         return {
             "logits": logits,

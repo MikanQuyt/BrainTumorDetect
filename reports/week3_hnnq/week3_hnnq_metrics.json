@@ -1,0 +1,414 @@
+{
+  "parameter_comparison": [
+    {
+      "config": "linear_probe",
+      "lora_r": 0,
+      "lora_alpha": 0,
+      "total_params": 85801732,
+      "trainable_params": 3076,
+      "trainable_pct": 0.0036,
+      "lora_params": 0,
+      "lora_pct_of_backbone": 0.0,
+      "box_head_params": 0
+    },
+    {
+      "config": "full_finetune",
+      "lora_r": 0,
+      "lora_alpha": 0,
+      "total_params": 85801732,
+      "trainable_params": 85801732,
+      "trainable_pct": 100.0,
+      "lora_params": 0,
+      "lora_pct_of_backbone": 0.0,
+      "box_head_params": 0
+    },
+    {
+      "config": "vit_lora_r4",
+      "lora_r": 4,
+      "lora_alpha": 8,
+      "total_params": 86451401,
+      "trainable_params": 652745,
+      "trainable_pct": 0.755,
+      "lora_params": 147456,
+      "lora_pct_of_backbone": 0.1716,
+      "box_head_params": 502213
+    },
+    {
+      "config": "vit_lora_r8",
+      "lora_r": 8,
+      "lora_alpha": 16,
+      "total_params": 86598857,
+      "trainable_params": 800201,
+      "trainable_pct": 0.924,
+      "lora_params": 294912,
+      "lora_pct_of_backbone": 0.3425,
+      "box_head_params": 502213
+    },
+    {
+      "config": "vit_lora_r16",
+      "lora_r": 16,
+      "lora_alpha": 32,
+      "total_params": 86893769,
+      "trainable_params": 1095113,
+      "trainable_pct": 1.2603,
+      "lora_params": 589824,
+      "lora_pct_of_backbone": 0.6828,
+      "box_head_params": 502213
+    },
+    {
+      "config": "vit_lora_r32",
+      "lora_r": 32,
+      "lora_alpha": 64,
+      "total_params": 87483593,
+      "trainable_params": 1684937,
+      "trainable_pct": 1.926,
+      "lora_params": 1179648,
+      "lora_pct_of_backbone": 1.3563,
+      "box_head_params": 502213
+    }
+  ],
+  "focal_training_history": [
+    {
+      "epoch": 1,
+      "cls_loss": 0.09095499664545059,
+      "box_loss": 0.9938279986381531,
+      "giou_loss": 0.8223446011543274,
+      "l1_loss": 0.11432226747274399,
+      "mean_iou": 0.21586887538433075,
+      "acc_tau035": 0.8571428656578064
+    },
+    {
+      "epoch": 2,
+      "cls_loss": 0.08229323476552963,
+      "box_loss": 0.8731719255447388,
+      "giou_loss": 0.7454676628112793,
+      "l1_loss": 0.08513616025447845,
+      "mean_iou": 0.31327754259109497,
+      "acc_tau035": 0.8571428656578064
+    },
+    {
+      "epoch": 3,
+      "cls_loss": 0.07339099794626236,
+      "box_loss": 0.8329946398735046,
+      "giou_loss": 0.7164626121520996,
+      "l1_loss": 0.07768803089857101,
+      "mean_iou": 0.3197142481803894,
+      "acc_tau035": 0.8571428656578064
+    },
+    {
+      "epoch": 4,
+      "cls_loss": 0.06664109230041504,
+      "box_loss": 0.7311185002326965,
+      "giou_loss": 0.6359409689903259,
+      "l1_loss": 0.06345169246196747,
+      "mean_iou": 0.3983709216117859,
+      "acc_tau035": 0.8571428656578064
+    },
+    {
+      "epoch": 5,
+      "cls_loss": 0.0627174898982048,
+      "box_loss": 0.7214967012405396,
+      "giou_loss": 0.6422934532165527,
+      "l1_loss": 0.05280217155814171,
+      "mean_iou": 0.3899882137775421,
+      "acc_tau035": 0.8571428656578064
+    },
+    {
+      "epoch": 6,
+      "cls_loss": 0.059394996613264084,
+      "box_loss": 0.6538072228431702,
+      "giou_loss": 0.5740975141525269,
+      "l1_loss": 0.05313979461789131,
+      "mean_iou": 0.44525569677352905,
+      "acc_tau035": 0.8928571343421936
+    },
+    {
+      "epoch": 7,
+      "cls_loss": 0.05585266277194023,
+      "box_loss": 0.46581098437309265,
+      "giou_loss": 0.41499319672584534,
+      "l1_loss": 0.03387853130698204,
+      "mean_iou": 0.6001928448677063,
+      "acc_tau035": 0.8928571343421936
+    },
+    {
+      "epoch": 8,
+      "cls_loss": 0.052021574229002,
+      "box_loss": 0.6194941401481628,
+      "giou_loss": 0.5541372299194336,
+      "l1_loss": 0.04357127845287323,
+      "mean_iou": 0.4753571152687073,
+      "acc_tau035": 0.9285714030265808
+    },
+    {
+      "epoch": 9,
+      "cls_loss": 0.05081941932439804,
+      "box_loss": 0.5434699058532715,
+      "giou_loss": 0.4909588098526001,
+      "l1_loss": 0.03500739485025406,
+      "mean_iou": 0.5346869230270386,
+      "acc_tau035": 0.8928571343421936
+    },
+    {
+      "epoch": 10,
+      "cls_loss": 0.04757990688085556,
+      "box_loss": 0.48697447776794434,
+      "giou_loss": 0.4405757486820221,
+      "l1_loss": 0.03093249350786209,
+      "mean_iou": 0.5786550045013428,
+      "acc_tau035": 0.9642857313156128
+    },
+    {
+      "epoch": 11,
+      "cls_loss": 0.045664746314287186,
+      "box_loss": 0.46209031343460083,
+      "giou_loss": 0.4180930256843567,
+      "l1_loss": 0.02933153510093689,
+      "mean_iou": 0.5981826782226562,
+      "acc_tau035": 1.0
+    },
+    {
+      "epoch": 12,
+      "cls_loss": 0.04609919711947441,
+      "box_loss": 0.4735628366470337,
+      "giou_loss": 0.4304249882698059,
+      "l1_loss": 0.028758559376001358,
+      "mean_iou": 0.5930910110473633,
+      "acc_tau035": 1.0
+    },
+    {
+      "epoch": 13,
+      "cls_loss": 0.04562610015273094,
+      "box_loss": 0.5506179928779602,
+      "giou_loss": 0.48917728662490845,
+      "l1_loss": 0.04096045717597008,
+      "mean_iou": 0.5238586068153381,
+      "acc_tau035": 1.0
+    },
+    {
+      "epoch": 14,
+      "cls_loss": 0.04327770322561264,
+      "box_loss": 0.40155988931655884,
+      "giou_loss": 0.364526629447937,
+      "l1_loss": 0.02468884363770485,
+      "mean_iou": 0.649117648601532,
+      "acc_tau035": 0.9642857313156128
+    },
+    {
+      "epoch": 15,
+      "cls_loss": 0.04192230477929115,
+      "box_loss": 0.3927174210548401,
+      "giou_loss": 0.3585088551044464,
+      "l1_loss": 0.02280570939183235,
+      "mean_iou": 0.6481475234031677,
+      "acc_tau035": 1.0
+    },
+    {
+      "epoch": 16,
+      "cls_loss": 0.04083904251456261,
+      "box_loss": 0.4753134250640869,
+      "giou_loss": 0.4319742023944855,
+      "l1_loss": 0.02889281138777733,
+      "mean_iou": 0.585014283657074,
+      "acc_tau035": 1.0
+    }
+  ],
+  "wce_training_history": [
+    {
+      "epoch": 1,
+      "cls_loss": 0.7043019533157349,
+      "box_loss": 1.093416452407837,
+      "mean_iou": 0.1685027927160263
+    },
+    {
+      "epoch": 2,
+      "cls_loss": 0.6519511938095093,
+      "box_loss": 1.0269432067871094,
+      "mean_iou": 0.19712644815444946
+    },
+    {
+      "epoch": 3,
+      "cls_loss": 0.6178154945373535,
+      "box_loss": 0.9272449016571045,
+      "mean_iou": 0.2485893815755844
+    },
+    {
+      "epoch": 4,
+      "cls_loss": 0.5855963230133057,
+      "box_loss": 0.9176952838897705,
+      "mean_iou": 0.2627584934234619
+    },
+    {
+      "epoch": 5,
+      "cls_loss": 0.5514903664588928,
+      "box_loss": 0.8631851673126221,
+      "mean_iou": 0.29918909072875977
+    },
+    {
+      "epoch": 6,
+      "cls_loss": 0.5200092792510986,
+      "box_loss": 0.8276371955871582,
+      "mean_iou": 0.31573033332824707
+    },
+    {
+      "epoch": 7,
+      "cls_loss": 0.48148220777511597,
+      "box_loss": 0.9024320244789124,
+      "mean_iou": 0.2631326913833618
+    },
+    {
+      "epoch": 8,
+      "cls_loss": 0.44956937432289124,
+      "box_loss": 0.8041878938674927,
+      "mean_iou": 0.33367598056793213
+    },
+    {
+      "epoch": 9,
+      "cls_loss": 0.4238048195838928,
+      "box_loss": 0.7656739950180054,
+      "mean_iou": 0.36810097098350525
+    },
+    {
+      "epoch": 10,
+      "cls_loss": 0.3890083432197571,
+      "box_loss": 0.6941823959350586,
+      "mean_iou": 0.4255309998989105
+    },
+    {
+      "epoch": 11,
+      "cls_loss": 0.37168195843696594,
+      "box_loss": 0.7722412347793579,
+      "mean_iou": 0.3766006529331207
+    },
+    {
+      "epoch": 12,
+      "cls_loss": 0.3421224057674408,
+      "box_loss": 0.5892573595046997,
+      "mean_iou": 0.49991273880004883
+    },
+    {
+      "epoch": 13,
+      "cls_loss": 0.3195459842681885,
+      "box_loss": 0.5432921051979065,
+      "mean_iou": 0.5317455530166626
+    },
+    {
+      "epoch": 14,
+      "cls_loss": 0.29665544629096985,
+      "box_loss": 0.5327914953231812,
+      "mean_iou": 0.537791907787323
+    },
+    {
+      "epoch": 15,
+      "cls_loss": 0.27679750323295593,
+      "box_loss": 0.5585745573043823,
+      "mean_iou": 0.5201985836029053
+    },
+    {
+      "epoch": 16,
+      "cls_loss": 0.26432767510414124,
+      "box_loss": 0.5538044571876526,
+      "mean_iou": 0.5199103355407715
+    }
+  ],
+  "mechanism1_ds1_samples": [
+    {
+      "img_path": "dataset/ds1_cropped/yes/Y1.png",
+      "tumor_prob": 0.3921,
+      "auto_box_1024": [
+        125.6,
+        128.6,
+        513.4,
+        733.4
+      ],
+      "peak_pos_point": [
+        455.0,
+        419.0
+      ],
+      "neg_point": [
+        909.0,
+        767.0
+      ]
+    },
+    {
+      "img_path": "dataset/ds1_cropped/yes/Y10.png",
+      "tumor_prob": 0.6693,
+      "auto_box_1024": [
+        566.1,
+        381.0,
+        859.9,
+        759.0
+      ],
+      "peak_pos_point": [
+        665.0,
+        475.0
+      ],
+      "neg_point": [
+        539.0,
+        101.0
+      ]
+    },
+    {
+      "img_path": "dataset/ds1_cropped/yes/Y100.png",
+      "tumor_prob": 0.5138,
+      "auto_box_1024": [
+        344.5,
+        241.3,
+        520.5,
+        475.7
+      ],
+      "peak_pos_point": [
+        440.0,
+        399.0
+      ],
+      "neg_point": [
+        119.0,
+        763.0
+      ]
+    },
+    {
+      "img_path": "dataset/ds1_cropped/yes/Y101.png",
+      "tumor_prob": 0.6274,
+      "auto_box_1024": [
+        342.9,
+        283.2,
+        507.1,
+        629.8
+      ],
+      "peak_pos_point": [
+        458.0,
+        457.0
+      ],
+      "neg_point": [
+        946.0,
+        548.0
+      ]
+    }
+  ],
+  "mechanism2_supervised_samples": [
+    {
+      "dataset": "Dataset 2 (indk214)",
+      "img_path": "dataset/ds2_cropped/images/glioma_enh_1841.png",
+      "box_iou": 0.6067,
+      "pointing_game_hit": true,
+      "medsam_dice": 0.9386,
+      "medsam_iou": 0.8843
+    },
+    {
+      "dataset": "Dataset 3 (BRISC 2025)",
+      "img_path": "dataset/ds3_processed/images/brisc2025_train_00019_gl_ax_t1.png",
+      "box_iou": 0.5811,
+      "pointing_game_hit": false,
+      "medsam_dice": 0.8731,
+      "medsam_iou": 0.7748
+    },
+    {
+      "dataset": "Dataset 4 (BraTS2020)",
+      "img_path": "dataset/brats2020_png/images/volume_102_slice_100.png",
+      "box_iou": 0.611,
+      "pointing_game_hit": true,
+      "medsam_dice": 0.7824,
+      "medsam_iou": 0.6425
+    }
+  ]
+}

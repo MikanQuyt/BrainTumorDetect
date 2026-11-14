@@ -164,19 +164,43 @@ class ViTDetBoxHead(nn.Module):
         coord_grid = self._make_coord_grid(b, p3.shape[2], p3.shape[3], p3.device, p3.dtype)
         p3_coord = self.coord_conv(torch.cat([p3, coord_grid], dim=1))
 
-        # Spatial attention pooling trên P3
-        attn_logits = self.spatial_attn(p3_coord).flatten(2)          # (B, 1, H*W)
+        # Spatial attention pooling + Differentiable Soft-Argmax trên P3
+        attn_map = self.spatial_attn(p3_coord)                        # (B, 1, 28, 28)
+        attn_logits = attn_map.flatten(2)                             # (B, 1, H*W)
         attn_weights = F.softmax(attn_logits, dim=-1)                 # (B, 1, H*W)
         p3_flat = p3_coord.flatten(2)                                 # (B, sfp_dim, H*W)
         p3_attn_pool = torch.bmm(p3_flat, attn_weights.transpose(1, 2)).squeeze(-1)  # (B, sfp_dim)
+
+        # Kỳ vọng tọa độ tâm (mu_x, mu_y) khả vi từ bản đồ chú ý không gian P3
+        grid_flat = coord_grid.flatten(2)                             # (B, 2, H*W)
+        mu_xy = torch.bmm(grid_flat, attn_weights.transpose(1, 2)).squeeze(-1)       # (B, 2) ∈ [0, 1]^2
 
         p3_max_pool = F.adaptive_max_pool2d(p3_coord, 1).flatten(1)   # (B, sfp_dim)
         p4_avg_pool = F.adaptive_avg_pool2d(p4, 1).flatten(1)         # (B, sfp_dim)
         cls_emb = self.cls_proj(cls_token)                            # (B, sfp_dim)
 
         fused = torch.cat([p3_attn_pool, p3_max_pool, p4_avg_pool, cls_emb], dim=-1)
-        cxcywh = torch.sigmoid(self.mlp(fused))
+        raw_out = self.mlp(fused)
+        delta_xy = 0.25 * torch.tanh(raw_out[:, :2])
+        cxcy = (mu_xy + delta_xy).clamp(0.02, 0.98)
+        wh = torch.sigmoid(raw_out[:, 2:]).clamp(0.04, 0.95)
+        cxcywh = torch.cat([cxcy, wh], dim=-1)
         return self.cxcywh_to_xyxy(cxcywh)
+
+    def spatial_heatmap(self, patch_tokens: torch.Tensor) -> torch.Tensor:
+        """Trích xuất bản đồ chú ý không gian 28x28 đã chuẩn hóa [0, 1] từ nhánh ViTDet SFP."""
+        b, n, d = patch_tokens.shape
+        side = int(math.isqrt(n))
+        feat_2d = patch_tokens.transpose(1, 2).contiguous().view(b, d, side, side)
+        p4 = self.lateral(feat_2d)
+        p3 = self.up_p3(p4)
+        coord_grid = self._make_coord_grid(b, p3.shape[2], p3.shape[3], p3.device, p3.dtype)
+        p3_coord = self.coord_conv(torch.cat([p3, coord_grid], dim=1))
+        attn_map = torch.sigmoid(self.spatial_attn(p3_coord).squeeze(1))  # (B, 28, 28)
+        flat = attn_map.flatten(-2)
+        mn = flat.min(dim=-1).values.unsqueeze(-1).unsqueeze(-1)
+        mx = flat.max(dim=-1).values.unsqueeze(-1).unsqueeze(-1)
+        return ((attn_map - mn) / (mx - mn + 1e-7)).clamp(0.0, 1.0)
 
 
 class ViTLoRA(nn.Module):

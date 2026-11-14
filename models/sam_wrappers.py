@@ -104,7 +104,13 @@ class MedSamBoxSegmenter:
         box_xyxy=None,
         point_coords: np.ndarray | None = None,
         point_labels: np.ndarray | None = None,
+        use_points: bool = False,
     ) -> np.ndarray:
+        """Suy luận MedSAM theo quy trình chuẩn bowang-lab/MedSAM.
+
+        Lưu ý: Trọng số gốc `medsam_vit_b.pth` được huấn luyện thuần với Box Prompt (`points=None`).
+        Tham số `use_points=True` chỉ nên bật sau khi đã tinh chỉnh Mask Decoder với Hybrid Prompt ở Tuần 4.
+        """
         h, w = image_rgb.shape[:2]
         x = self.preprocess(image_rgb).to(self.device)
         embed = self.model.image_encoder(x)
@@ -114,7 +120,7 @@ class MedSamBoxSegmenter:
             else None
         )
         points = None
-        if point_coords is not None and point_labels is not None:
+        if use_points and point_coords is not None and point_labels is not None:
             pts = np.asarray(point_coords, dtype=np.float32).reshape(-1, 2)
             pts_1024 = pts / np.array([w, h], dtype=np.float32) * 1024.0
             coords_t = torch.as_tensor(pts_1024[None, :, :], dtype=torch.float, device=self.device)
