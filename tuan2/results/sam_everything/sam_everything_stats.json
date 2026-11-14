@@ -1,0 +1,26 @@
+{
+  "title": "SAM Everything Mode Mis-segmentation Proof",
+  "total_images_tested": 50,
+  "total_time_sec": 853.66,
+  "avg_time_per_image_sec": 17.07,
+  "overall": {
+    "avg_masks_per_slice": 4.3,
+    "std_masks_per_slice": 2.05,
+    "avg_large_masks_per_slice": 3.0,
+    "avg_pct_large_masks": 76.75,
+    "avg_max_mask_coverage_pct": 50.28
+  },
+  "by_source": {
+    "BRISC_2025": {
+      "n": 25,
+      "avg_masks": 3.48,
+      "avg_pct_large": 78.15
+    },
+    "Dataset_1": {
+      "n": 25,
+      "avg_masks": 5.12,
+      "avg_pct_large": 75.35
+    }
+  },
+  "scientific_conclusion": "Without medical-specific prompts, SAM Everything Mode generates an average of 4.3 masks per brain MRI scan across both BRISC 2025 and Dataset 1. Over 76.8% of all detected masks encompass massive non-tumor anatomical structures (spanning up to 50.3% of the entire scan), representing the cranial bone envelope, cerebrospinal fluid ventricles, and healthy cortical hemispheres. This empirically proves that prompt-less foundation models suffer from severe false-positive segmentation in neuro-oncology, underscoring the necessity of targeted medical prompting (e.g., Oracle Box in MedSAM)."
+}

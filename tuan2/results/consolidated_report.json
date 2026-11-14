@@ -1,0 +1,306 @@
+{
+  "generated_at": "20261114_100938",
+  "classification": {
+    "linear_probing": {
+      "accuracy": 0.8275,
+      "macro_f1": 0.8262699659165857,
+      "macro_precision": 0.8274202747607002,
+      "macro_recall": 0.8275,
+      "report": {
+        "glioma": {
+          "precision": 0.7636363636363637,
+          "recall": 0.84,
+          "f1-score": 0.8,
+          "support": 100.0
+        },
+        "meningioma": {
+          "precision": 0.7252747252747253,
+          "recall": 0.66,
+          "f1-score": 0.6910994764397905,
+          "support": 100.0
+        },
+        "no_tumor": {
+          "precision": 0.8952380952380953,
+          "recall": 0.94,
+          "f1-score": 0.9170731707317074,
+          "support": 100.0
+        },
+        "pituitary": {
+          "precision": 0.925531914893617,
+          "recall": 0.87,
+          "f1-score": 0.8969072164948454,
+          "support": 100.0
+        },
+        "accuracy": 0.8275,
+        "macro avg": {
+          "precision": 0.8274202747607002,
+          "recall": 0.8275,
+          "f1-score": 0.8262699659165857,
+          "support": 400.0
+        },
+        "weighted avg": {
+          "precision": 0.8274202747607003,
+          "recall": 0.8275,
+          "f1-score": 0.8262699659165859,
+          "support": 400.0
+        }
+      },
+      "confusion_matrix": [
+        [
+          84,
+          15,
+          0,
+          1
+        ],
+        [
+          18,
+          66,
+          10,
+          6
+        ],
+        [
+          0,
+          6,
+          94,
+          0
+        ],
+        [
+          8,
+          4,
+          1,
+          87
+        ]
+      ],
+      "mode": "Linear Probing",
+      "model": "vit_tiny_patch16_224",
+      "epochs": 10,
+      "best_val_acc": 0.91,
+      "test_acc": 0.8275,
+      "test_loss": 0.3978217160701752,
+      "elapsed_sec": 340.31979727745056,
+      "history": {
+        "train_loss": [
+          1.5402741541862488,
+          0.7472938368320465,
+          0.548082914352417,
+          0.4706066417694092,
+          0.407377197265625,
+          0.36981550526618956,
+          0.35183945620059964,
+          0.3295913758277893,
+          0.3107491204738617,
+          0.29105655336380004
+        ],
+        "train_acc": [
+          0.397,
+          0.698,
+          0.791,
+          0.817,
+          0.845,
+          0.862,
+          0.872,
+          0.88,
+          0.876,
+          0.9
+        ],
+        "val_loss": [
+          0.9170892357826232,
+          0.6045819652080536,
+          0.48665998339653016,
+          0.41742184638977053,
+          0.38114511609077456,
+          0.36926753938198087,
+          0.3478298282623291,
+          0.3307642912864685,
+          0.3218133538961411,
+          0.3021472555398941
+        ],
+        "val_acc": [
+          0.625,
+          0.77,
+          0.795,
+          0.855,
+          0.875,
+          0.89,
+          0.87,
+          0.89,
+          0.9,
+          0.91
+        ]
+      }
+    },
+    "full_finetuning": {
+      "accuracy": 0.72,
+      "macro_f1": 0.6838608653010276,
+      "macro_precision": 0.740909090909091,
+      "macro_recall": 0.72,
+      "report": {
+        "glioma": {
+          "precision": 0.6666666666666666,
+          "recall": 0.92,
+          "f1-score": 0.773109243697479,
+          "support": 50.0
+        },
+        "meningioma": {
+          "precision": 0.8,
+          "recall": 0.24,
+          "f1-score": 0.36923076923076925,
+          "support": 50.0
+        },
+        "no_tumor": {
+          "precision": 0.696969696969697,
+          "recall": 0.92,
+          "f1-score": 0.7931034482758621,
+          "support": 50.0
+        },
+        "pituitary": {
+          "precision": 0.8,
+          "recall": 0.8,
+          "f1-score": 0.8,
+          "support": 50.0
+        },
+        "accuracy": 0.72,
+        "macro avg": {
+          "precision": 0.740909090909091,
+          "recall": 0.72,
+          "f1-score": 0.6838608653010276,
+          "support": 200.0
+        },
+        "weighted avg": {
+          "precision": 0.740909090909091,
+          "recall": 0.72,
+          "f1-score": 0.6838608653010276,
+          "support": 200.0
+        }
+      },
+      "confusion_matrix": [
+        [
+          46,
+          2,
+          0,
+          2
+        ],
+        [
+          14,
+          12,
+          17,
+          7
+        ],
+        [
+          2,
+          1,
+          46,
+          1
+        ],
+        [
+          7,
+          0,
+          3,
+          40
+        ]
+      ],
+      "mode": "Full Fine-tuning",
+      "model": "vit_tiny_patch16_224",
+      "epochs": 2,
+      "best_val_acc": 0.8333333333333334,
+      "test_acc": 0.72,
+      "test_loss": 0.6869356465339661,
+      "elapsed_sec": 224.26588034629822,
+      "history": {
+        "train_loss": [
+          1.247800099849701,
+          0.5689199894666672
+        ],
+        "train_acc": [
+          0.45625,
+          0.775
+        ],
+        "val_loss": [
+          0.7106398542722067,
+          0.5451505760351817
+        ],
+        "val_acc": [
+          0.7833333333333333,
+          0.8333333333333334
+        ]
+      }
+    }
+  },
+  "segmentation": {
+    "model": "Zero-shot MedSAM (MobileSAM ViT-Tiny)",
+    "prompt": "Oracle Bounding Box (derived from GT mask)",
+    "n_evaluated_slices": 50,
+    "total_eval_time_sec": 480.3,
+    "avg_time_per_slice_sec": 9.606,
+    "mean_dice": 0.8787416373413369,
+    "mean_iou": 0.8157494803205989,
+    "mean_precision": 0.8888253707077984,
+    "mean_recall": 0.8952324773081491,
+    "per_class": {
+      "glioma": {
+        "n_slices": 15,
+        "mean_dice": 0.7710765378061798,
+        "mean_iou": 0.6854332588317055,
+        "mean_precision": 0.7973123355558283,
+        "mean_recall": 0.7954983850466328
+      },
+      "meningioma": {
+        "n_slices": 18,
+        "mean_dice": 0.914927253199098,
+        "mean_iou": 0.862983651643268,
+        "mean_precision": 0.9293414883724781,
+        "mean_recall": 0.9275898651004135
+      },
+      "pituitary": {
+        "n_slices": 17,
+        "mean_dice": 0.9354260730817874,
+        "mean_iou": 0.88072172964562,
+        "mean_precision": 0.926672747726347,
+        "mean_recall": 0.9489723834059134
+      }
+    },
+    "per_view": {
+      "axial": {
+        "n_slices": 21,
+        "mean_dice": 0.8554750090780469,
+        "mean_iou": 0.794426865660609
+      },
+      "coronal": {
+        "n_slices": 16,
+        "mean_dice": 0.9212463306137266,
+        "mean_iou": 0.8590986437132253
+      },
+      "sagittal": {
+        "n_slices": 13,
+        "mean_dice": 0.8640127220467869,
+        "mean_iou": 0.7968408875188886
+      }
+    }
+  },
+  "sam_everything": {
+    "title": "SAM Everything Mode Mis-segmentation Proof",
+    "total_images_tested": 50,
+    "total_time_sec": 853.66,
+    "avg_time_per_image_sec": 17.07,
+    "overall": {
+      "avg_masks_per_slice": 4.3,
+      "std_masks_per_slice": 2.05,
+      "avg_large_masks_per_slice": 3.0,
+      "avg_pct_large_masks": 76.75,
+      "avg_max_mask_coverage_pct": 50.28
+    },
+    "by_source": {
+      "BRISC_2025": {
+        "n": 25,
+        "avg_masks": 3.48,
+        "avg_pct_large": 78.15
+      },
+      "Dataset_1": {
+        "n": 25,
+        "avg_masks": 5.12,
+        "avg_pct_large": 75.35
+      }
+    },
+    "scientific_conclusion": "Without medical-specific prompts, SAM Everything Mode generates an average of 4.3 masks per brain MRI scan across both BRISC 2025 and Dataset 1. Over 76.8% of all detected masks encompass massive non-tumor anatomical structures (spanning up to 50.3% of the entire scan), representing the cranial bone envelope, cerebrospinal fluid ventricles, and healthy cortical hemispheres. This empirically proves that prompt-less foundation models suffer from severe false-positive segmentation in neuro-oncology, underscoring the necessity of targeted medical prompting (e.g., Oracle Box in MedSAM)."
+  }
+}

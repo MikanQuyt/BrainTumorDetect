@@ -1,0 +1,5 @@
+class,precision,recall,f1-score,support
+glioma,0.7636,0.8400,0.8000,100.0
+meningioma,0.7253,0.6600,0.6911,100.0
+no_tumor,0.8952,0.9400,0.9171,100.0
+pituitary,0.9255,0.8700,0.8969,100.0

@@ -1,0 +1,51 @@
+{
+  "model": "Zero-shot MedSAM (MobileSAM ViT-Tiny)",
+  "prompt": "Oracle Bounding Box (derived from GT mask)",
+  "n_evaluated_slices": 50,
+  "total_eval_time_sec": 480.3,
+  "avg_time_per_slice_sec": 9.606,
+  "mean_dice": 0.8787416373413369,
+  "mean_iou": 0.8157494803205989,
+  "mean_precision": 0.8888253707077984,
+  "mean_recall": 0.8952324773081491,
+  "per_class": {
+    "glioma": {
+      "n_slices": 15,
+      "mean_dice": 0.7710765378061798,
+      "mean_iou": 0.6854332588317055,
+      "mean_precision": 0.7973123355558283,
+      "mean_recall": 0.7954983850466328
+    },
+    "meningioma": {
+      "n_slices": 18,
+      "mean_dice": 0.914927253199098,
+      "mean_iou": 0.862983651643268,
+      "mean_precision": 0.9293414883724781,
+      "mean_recall": 0.9275898651004135
+    },
+    "pituitary": {
+      "n_slices": 17,
+      "mean_dice": 0.9354260730817874,
+      "mean_iou": 0.88072172964562,
+      "mean_precision": 0.926672747726347,
+      "mean_recall": 0.9489723834059134
+    }
+  },
+  "per_view": {
+    "axial": {
+      "n_slices": 21,
+      "mean_dice": 0.8554750090780469,
+      "mean_iou": 0.794426865660609
+    },
+    "coronal": {
+      "n_slices": 16,
+      "mean_dice": 0.9212463306137266,
+      "mean_iou": 0.8590986437132253
+    },
+    "sagittal": {
+      "n_slices": 13,
+      "mean_dice": 0.8640127220467869,
+      "mean_iou": 0.7968408875188886
+    }
+  }
+}
