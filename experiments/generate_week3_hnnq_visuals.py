@@ -1,5 +1,4 @@
-"""Sinh bộ ảnh kết quả trực quan cho nhiệm vụ Tuần 3 của Huỳnh Nguyễn Nhân Quyết (`HNNQuyet_tuan3`).
-
+"""
 Xuất 3 hình ảnh chất lượng cao vào `reports/week3_hnnq/`:
   1. `fig1_lora_params_and_training_curves.png`:
      - Đối sánh tỷ lệ tham số khả huấn của LoRA r ∈ {4, 8, 16, 32} vs Linear Probing & Full Fine-tuning.
