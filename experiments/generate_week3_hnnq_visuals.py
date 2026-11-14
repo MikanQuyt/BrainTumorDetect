@@ -39,7 +39,8 @@ from utils.losses import BoxRegressionLoss, build_classification_loss, compute_c
 from utils.metrics import box_iou_score, dice_score, iou_score, pointing_game_hit
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-OUT_DIR = PROJECT_ROOT / "reports" / "week3_hnnq"
+IMAGE_DIR = PROJECT_ROOT / "image" / "tuan3"
+REPORT_DIR = PROJECT_ROOT / "reports" / "tuan3" / "vit_lora_auto_prompt"
 
 
 def denorm_img224(t: torch.Tensor, size: tuple[int, int] = (1024, 1024)) -> np.ndarray:
@@ -458,7 +459,8 @@ def plot_fig3_mechanism2_supervised(
 
 
 def main():
-    OUT_DIR.mkdir(parents=True, exist_ok=True)
+    IMAGE_DIR.mkdir(parents=True, exist_ok=True)
+    REPORT_DIR.mkdir(parents=True, exist_ok=True)
     print("1. Tính bảng tham số các cấu hình LoRA r ∈ {4, 8, 16, 32}...")
     param_rows = summarize_rank_parameters(ranks=(4, 8, 16, 32), num_classes=4, use_box_head=True)
 
@@ -476,15 +478,15 @@ def main():
     print(f"3. Huấn luyện thực nghiệm ViT-LoRA (r=8, α=16) trên {len(train_samples)} lát cắt MRI đa bộ dữ liệu...")
     model, focal_hist, wce_hist = train_demo_vit_lora(train_samples, epochs=16, device="cpu")
 
-    fig1_path = OUT_DIR / "fig1_lora_params_and_training_curves.png"
+    fig1_path = IMAGE_DIR / "fig1_lora_params_and_training_curves.png"
     print(f"4. Xuất biểu đồ tham số & hội tụ huấn luyện -> {fig1_path}")
     plot_fig1_params_and_curves(param_rows, focal_hist, wce_hist, fig1_path)
 
-    fig2_path = OUT_DIR / "fig2_mechanism1_rollout_layercam_ds1.png"
+    fig2_path = IMAGE_DIR / "fig2_mechanism1_rollout_layercam_ds1.png"
     print(f"5. Xuất ảnh kết quả Cơ chế (1) Weakly-Supervised Heatmap trên Dataset 1 -> {fig2_path}")
     ds1_summary = plot_fig2_mechanism1_ds1(model, ds1, ds1_yes[:4], fig2_path)
 
-    fig3_path = OUT_DIR / "fig3_mechanism2_vitdet_box_head_ds2_ds3_ds4.png"
+    fig3_path = IMAGE_DIR / "fig3_mechanism2_vitdet_box_head_ds2_ds3_ds4.png"
     print(f"6. Xuất ảnh kết quả Cơ chế (2) ViTDetBoxHead + MedSAM trên DS2, DS3, DS4 -> {fig3_path}")
     supervised_tuples = [
         ("Dataset 2 (indk214)", ds2, ds2_idx[0]),
@@ -500,7 +502,7 @@ def main():
         "mechanism1_ds1_samples": ds1_summary,
         "mechanism2_supervised_samples": sup_summary,
     }
-    (OUT_DIR / "week3_hnnq_metrics.json").write_text(
+    (REPORT_DIR / "week3_hnnq_metrics.json").write_text(
         json.dumps(summary_payload, indent=2, ensure_ascii=False) + "\n",
         encoding="utf-8",
     )

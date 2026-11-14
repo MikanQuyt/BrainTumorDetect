@@ -22,6 +22,9 @@ __pycache__/
 Thumbs.db
 chinhsua*.md
 check*.md
+HNNQ.md
+outputs/
+runs/
 Nguyen_Phuoc_Hoang_Quan_tuan*/
 reports/week2/**/pred/
 reports/week2/_dry/
