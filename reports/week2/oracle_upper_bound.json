@@ -1,0 +1,197 @@
+{
+  "note": "Upper-bound = Dice/IoU khi prompt la hop chuan (oracle GT box); dung lam moc cho cac tuan sau.",
+  "datasets": {
+    "ds4": {
+      "n_slices": 3313,
+      "n_cases": 55,
+      "methods": {
+        "SAM": {
+          "dice": {
+            "slice_mean": 0.7867591790309536,
+            "slice_sd": 0.18871336096312658,
+            "slice_median": 0.8441379310321542,
+            "case_mean": 0.7774416632952242,
+            "case_sd": 0.11918574934269432,
+            "case_median": 0.8095997026834982
+          },
+          "iou": {
+            "slice_mean": 0.6802823043922324,
+            "slice_sd": 0.20847817525682463,
+            "slice_median": 0.730310262526347,
+            "case_mean": 0.6704661949949882,
+            "case_sd": 0.13436378133814067,
+            "case_median": 0.7038693122783207
+          }
+        },
+        "MedSAM": {
+          "dice": {
+            "slice_mean": 0.7884939030203637,
+            "slice_sd": 0.17122769181745845,
+            "slice_median": 0.847832247093092,
+            "case_mean": 0.7821856684240285,
+            "case_sd": 0.08676382532577012,
+            "case_median": 0.7970515590166253
+          },
+          "iou": {
+            "slice_mean": 0.677808754489322,
+            "slice_sd": 0.1940478425185647,
+            "slice_median": 0.7358583374287464,
+            "case_mean": 0.670276640892638,
+            "case_sd": 0.10430873298360153,
+            "case_median": 0.6834815284859312
+          }
+        },
+        "Box-fill": {
+          "dice": {
+            "slice_mean": 0.6645528992749774,
+            "slice_sd": 0.14257663822834368,
+            "slice_median": 0.6953797963971267,
+            "case_mean": 0.6641264125103303,
+            "case_sd": 0.08593147906194332,
+            "case_median": 0.676888632866631
+          },
+          "iou": {
+            "slice_mean": 0.5131446242944687,
+            "slice_sd": 0.14675592663980475,
+            "slice_median": 0.533013205281313,
+            "case_mean": 0.5134255075916867,
+            "case_sd": 0.09211692359306514,
+            "case_median": 0.5204369232239466
+          }
+        }
+      },
+      "best_model_by_case_mean_dice": "MedSAM",
+      "upper_bound_dice_case_mean": 0.7821856684240285,
+      "upper_bound_iou_case_mean": 0.670276640892638,
+      "protocol": {
+        "tag": "ds4",
+        "ann": "dataset\\brats2020_annotations_local.json",
+        "split": "val",
+        "fold": null,
+        "n_images": 3313,
+        "device": "cuda",
+        "dry_run": false,
+        "seed": 0,
+        "box_end": "auto",
+        "multimask_output": false,
+        "medsam_threshold": 0.5,
+        "model_type": "vit_b",
+        "torch": "2.11.0+cu128",
+        "segment_anything": "1.0",
+        "sam_ckpt": {
+          "file": "sam_vit_b_01ec64.pth",
+          "bytes": 375042383,
+          "md5": "01ec64d29a2fca3f0661936605ae66f8"
+        },
+        "medsam_ckpt": {
+          "file": "medsam_vit_b.pth",
+          "bytes": 375049145,
+          "md5": "3bb6db55bd0c9ca30b61248bca72f8d6"
+        },
+        "started": "2026-11-11 15:33:10",
+        "box_conventions": {
+          "excl": 3313
+        },
+        "n_errors": 0,
+        "errors": [],
+        "finished": "2026-11-11 16:26:22"
+      }
+    },
+    "ds2": {
+      "n_slices": 2192,
+      "n_cases": 2192,
+      "methods": {
+        "SAM": {
+          "dice": {
+            "slice_mean": 0.847903208620898,
+            "slice_sd": 0.11498398126070263,
+            "slice_median": 0.8834106716239064,
+            "case_mean": 0.847903208620898,
+            "case_sd": 0.11498398126070263,
+            "case_median": 0.8834106716239064
+          },
+          "iou": {
+            "slice_mean": 0.7508132634918819,
+            "slice_sd": 0.15042338908438815,
+            "slice_median": 0.7911688295994648,
+            "case_mean": 0.7508132634918819,
+            "case_sd": 0.15042338908438815,
+            "case_median": 0.7911688295994648
+          }
+        },
+        "MedSAM": {
+          "dice": {
+            "slice_mean": 0.8450900870362574,
+            "slice_sd": 0.09925367868550877,
+            "slice_median": 0.8693398219893401,
+            "case_mean": 0.8450900870362574,
+            "case_sd": 0.09925367868550877,
+            "case_median": 0.8693398219893401
+          },
+          "iou": {
+            "slice_mean": 0.7434416890321299,
+            "slice_sd": 0.13720849505245805,
+            "slice_median": 0.7688780764930436,
+            "case_mean": 0.7434416890321299,
+            "case_sd": 0.13720849505245805,
+            "case_median": 0.7688780764930436
+          }
+        },
+        "Box-fill": {
+          "dice": {
+            "slice_mean": 0.8239237751834505,
+            "slice_sd": 0.07342196193394583,
+            "slice_median": 0.8442324489259636,
+            "case_mean": 0.8239237751834505,
+            "case_sd": 0.07342196193394583,
+            "case_median": 0.8442324489259636
+          },
+          "iou": {
+            "slice_mean": 0.7066505790395412,
+            "slice_sd": 0.09786085142712643,
+            "slice_median": 0.7304517663037733,
+            "case_mean": 0.7066505790395412,
+            "case_sd": 0.09786085142712643,
+            "case_median": 0.7304517663037733
+          }
+        }
+      },
+      "best_model_by_case_mean_dice": "SAM",
+      "upper_bound_dice_case_mean": 0.847903208620898,
+      "upper_bound_iou_case_mean": 0.7508132634918819,
+      "protocol": {
+        "tag": "ds2",
+        "ann": "C:\\TTNT\\DoAn\\ds2_work\\dataset\\ds2_annotations.json",
+        "split": "",
+        "fold": null,
+        "n_images": 2192,
+        "device": "cuda",
+        "dry_run": false,
+        "seed": 0,
+        "box_end": "auto",
+        "multimask_output": false,
+        "medsam_threshold": 0.5,
+        "model_type": "vit_b",
+        "torch": "2.11.0+cu128",
+        "segment_anything": "1.0",
+        "sam_ckpt": {
+          "file": "sam_vit_b_01ec64.pth",
+          "bytes": 375042383,
+          "md5": "01ec64d29a2fca3f0661936605ae66f8"
+        },
+        "medsam_ckpt": {
+          "file": "medsam_vit_b.pth",
+          "bytes": 375049145,
+          "md5": "3bb6db55bd0c9ca30b61248bca72f8d6"
+        },
+        "started": "2026-11-12 11:56:59",
+        "box_conventions": {
+          "excl": 2192
+        },
+        "n_errors": 0,
+        "errors": [],
+        "finished": "2026-11-12 12:26:00"
+      }
+    }
+  }
+}

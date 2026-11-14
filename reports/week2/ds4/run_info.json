@@ -1,0 +1,33 @@
+{
+  "tag": "ds4",
+  "ann": "dataset\\brats2020_annotations_local.json",
+  "split": "val",
+  "fold": null,
+  "n_images": 3313,
+  "device": "cuda",
+  "dry_run": false,
+  "seed": 0,
+  "box_end": "auto",
+  "multimask_output": false,
+  "medsam_threshold": 0.5,
+  "model_type": "vit_b",
+  "torch": "2.11.0+cu128",
+  "segment_anything": "1.0",
+  "sam_ckpt": {
+    "file": "sam_vit_b_01ec64.pth",
+    "bytes": 375042383,
+    "md5": "01ec64d29a2fca3f0661936605ae66f8"
+  },
+  "medsam_ckpt": {
+    "file": "medsam_vit_b.pth",
+    "bytes": 375049145,
+    "md5": "3bb6db55bd0c9ca30b61248bca72f8d6"
+  },
+  "started": "2026-11-11 15:33:10",
+  "box_conventions": {
+    "excl": 3313
+  },
+  "n_errors": 0,
+  "errors": [],
+  "finished": "2026-11-11 16:26:22"
+}
