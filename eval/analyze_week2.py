@@ -244,8 +244,8 @@ def fig_qualitative(ds, df, csv_dir, out):
 # ------------------------------------------------------------------ main
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--csv", nargs="+", required=True, help="ten=duong_dan_csv (vi du ds4=reports/week2/ds4/oracle_results.csv)")
-    ap.add_argument("--out_dir", default="reports/week2")
+    ap.add_argument("--csv", nargs="+", required=True, help="ten=duong_dan_csv (vi du ds4=reports/tuan2/week2/ds4/oracle_results.csv)")
+    ap.add_argument("--out_dir", default="reports/tuan2/week2")
     ap.add_argument("--allow_dry", action="store_true", help="Cho phep phan tich ket qua DRY RUN (chi de thu)")
     args = ap.parse_args()
 

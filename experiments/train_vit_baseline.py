@@ -315,9 +315,10 @@ def main():
     args = parser.parse_args()
     if args.data is None:
         name = "navoneel" if args.dataset == "ds1" else "indk214"
-        args.data = Path.home() / "Downloads" / name
+        local_dir = Path("dataset") / name
+        args.data = local_dir if local_dir.exists() else (Path.home() / "Downloads" / name)
     if args.output is None:
-        args.output = Path("runs") / args.dataset
+        args.output = Path("reports/tuan2/vit_baseline") / args.dataset
     if args.epochs_full is None:
         args.epochs_full = 20 if args.dataset == "ds1" else 8
     if min(args.epochs_linear, args.epochs_full, args.batch_size, args.threads) <= 0:

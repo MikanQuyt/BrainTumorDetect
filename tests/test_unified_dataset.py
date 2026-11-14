@@ -89,6 +89,21 @@ class UnifiedDatasetTest(unittest.TestCase):
         self.assertFalse(item["has_box"])
         self.assertEqual(float(item["gt_box"].abs().sum()), 0.0)
 
+    def test_all_four_real_annotation_files_harmonized(self):
+        ds_train = UnifiedBrainMRIDataset(datasets="all", split="train", train=False)
+        ds_val = UnifiedBrainMRIDataset(datasets="all", split="val", train=False)
+        ds_test = UnifiedBrainMRIDataset(datasets="all", split="test", train=False)
+        for ds in (ds_train, ds_val, ds_test):
+            present = {r["dataset"] for r in ds.records}
+            self.assertEqual(present, {"navoneel", "indk214", "brisc2025", "brats2020"})
+        # DS1 5-Fold CV check
+        ds1_fold0 = UnifiedBrainMRIDataset(datasets="navoneel", fold=0, train=False)
+        ds1_ex0 = UnifiedBrainMRIDataset(datasets="navoneel", exclude_fold=0, train=False)
+        self.assertEqual(len(ds1_fold0) + len(ds1_ex0), 253)
+        # BraTS2020 multiclass label harmonized (0 = no_tumor, 1 = glioma)
+        brats_labels = {int(r["sub_class_label"]) for r in ds_train.records if r["dataset"] == "brats2020"}
+        self.assertEqual(brats_labels, {0, 1})
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -350,7 +350,7 @@ def overview(df):
 def main():
     ap = argparse.ArgumentParser(description="EDA BraTS2020 (.nii/.nii.gz hoac .h5)")
     ap.add_argument("--data_dir", default="dataset/brats2020", help="Thu muc goc chua du lieu BraTS2020")
-    ap.add_argument("--out_dir", default="reports/eda_ds4", help="Thu muc luu ket qua")
+    ap.add_argument("--out_dir", default="reports/tuan1/eda_ds4", help="Thu muc luu ket qua")
     ap.add_argument("--limit", type=int, default=None, help="Chi chay N ca dau (de thu)")
     args = ap.parse_args()
 

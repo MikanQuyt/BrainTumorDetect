@@ -46,9 +46,9 @@ def stratified_split(df, val_ratio, test_ratio, seed):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--src", default="reports/week2/ds2/oracle_results.csv")
-    ap.add_argument("--out_split", default="reports/week2/ds2/ds2_split.csv")
-    ap.add_argument("--out_dir", default="reports/week2/ds2_val")
+    ap.add_argument("--src", default="reports/tuan2/week2/ds2/oracle_results.csv")
+    ap.add_argument("--out_split", default="reports/tuan2/week2/ds2/ds2_split.csv")
+    ap.add_argument("--out_dir", default="reports/tuan2/week2/ds2_val")
     ap.add_argument("--val_ratio", type=float, default=0.15)
     ap.add_argument("--test_ratio", type=float, default=0.15)
     ap.add_argument("--seed", type=int, default=42)

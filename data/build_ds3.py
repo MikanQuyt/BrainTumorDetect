@@ -303,7 +303,7 @@ def main():
     out_json.write_text(json.dumps(records, ensure_ascii=False, indent=2), encoding="utf-8")
 
     # Xuất nhật ký & bảng tổng kết chia tập
-    rep_dir = root / "reports/build_ds3"
+    rep_dir = root / "reports/tuan1/build_ds3"
     rep_dir.mkdir(parents=True, exist_ok=True)
     if logs:
         fields = list(dict.fromkeys(k for row in logs for k in row))

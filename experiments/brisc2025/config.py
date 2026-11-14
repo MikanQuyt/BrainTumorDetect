@@ -25,7 +25,7 @@ SEG_TEST_IMG   = ARCHIVE_ROOT / "segmentation_task" / "test"  / "images"
 SEG_TEST_MASK  = ARCHIVE_ROOT / "segmentation_task" / "test"  / "masks"
 
 # Output dirs
-RESULTS_ROOT   = PROJECT_ROOT / "reports" / "brisc2025"
+RESULTS_ROOT   = PROJECT_ROOT / "reports" / "tuan2" / "brisc2025"
 CLS_RESULTS    = RESULTS_ROOT / "classification"
 SEG_RESULTS    = RESULTS_ROOT / "segmentation"
 SAM_RESULTS    = RESULTS_ROOT / "sam_everything"

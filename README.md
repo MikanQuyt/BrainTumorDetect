@@ -84,15 +84,21 @@ BrainTumorDetect/
 
 ---
 
-## 3. Hướng dẫn Chạy Kiểm thử & Huấn luyện Nhanh
+## 3. Hướng dẫn Chạy Kiểm thử & Huấn luyện Toàn Hệ thống
 
 ```powershell
 # 1. Chạy toàn bộ bộ kiểm thử tự động (Unit Tests Tuần 1, 2, 3)
 .\venv\Scripts\python.exe -m unittest discover -s tests -v
 
-# 2. Huấn luyện ViT-LoRA (r=8, α=16) + ViTDetBoxHead (Cơ chế 2)
-.\venv\Scripts\python.exe -m engine.train_vit_lora --datasets brisc2025 --ann dataset/ds3_annotations.json --lora-r 8 --lora-alpha 16 --loss focal --label-smoothing 0.05
+# 2. Huấn luyện ViT-LoRA (r=8, α=16) + ViTDetBoxHead trên toàn bộ hệ thống đa bộ dữ liệu (DS1, DS2, DS3, DS4)
+.\venv\Scripts\python.exe -m engine.train_vit_lora --datasets all --lora-r 8 --lora-alpha 16 --loss focal --label-smoothing 0.05 --eval-medsam --out runs/vit_lora_all
 
-# 3. Sinh bộ ảnh kết quả trực quan Tuần 3 vào image/tuan3/
+# 3. Huấn luyện 5-Fold Cross-Validation trên Dataset 1 (Navoneel - Cơ chế 1: Attention Rollout + LayerCAM)
+.\venv\Scripts\python.exe -m engine.train_vit_lora --datasets navoneel --task binary --no-box-head --cv-5fold --epochs 15 --out runs/vit_lora_ds1
+
+# 4. Đánh giá Zero-shot SAM vs MedSAM với Oracle Box trên các bộ dữ liệu có nhãn Mask (DS2, DS3, DS4)
+.\venv\Scripts\python.exe -m engine.eval_sam --datasets indk214 brisc2025 brats2020 --split test --out runs/eval_sam_all
+
+# 5. Sinh bộ ảnh kết quả trực quan Tuần 3 vào image/tuan3/
 .\venv\Scripts\python.exe experiments/generate_week3_hnnq_visuals.py
 ```

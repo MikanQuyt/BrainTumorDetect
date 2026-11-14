@@ -27,8 +27,17 @@ from utils.metrics import SegmentationMeter
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--ann", nargs="+", default=["dataset/ds3_annotations.json"])
-    ap.add_argument("--datasets", nargs="+", default=["brisc2025"])
+    ap.add_argument(
+        "--ann",
+        nargs="+",
+        default=[
+            "dataset/ds1_annotations.json",
+            "dataset/ds2_annotations.json",
+            "dataset/ds3_annotations.json",
+            "dataset/brats2020_annotations.json",
+        ],
+    )
+    ap.add_argument("--datasets", nargs="+", default=["all"])
     ap.add_argument("--split", default="val")
     ap.add_argument("--models", nargs="+", default=["sam", "medsam"], choices=["sam", "medsam"])
     ap.add_argument("--limit", type=int, default=0)

@@ -40,7 +40,7 @@ def image_row(item):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", default=str(Path(__file__).resolve().parents[1]))
-    ap.add_argument("--out", default="reports/eda_ds1_ds2")
+    ap.add_argument("--out", default="reports/tuan1/eda_ds1_ds2")
     ap.add_argument("--limit", type=int, default=None)
     args = ap.parse_args()
     root, out = Path(args.root), Path(args.root) / args.out

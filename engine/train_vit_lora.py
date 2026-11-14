@@ -23,19 +23,20 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader
 
-from data.unified_dataset import UnifiedBrainMRIDataset
+from data.unified_dataset import DEFAULT_ANNOTATION_FILES, UnifiedBrainMRIDataset
 from models.auto_prompt import AutoPromptGenerator
 from models.vit_lora import ViTLoRA
 from utils.losses import BoxRegressionLoss, build_classification_loss, compute_class_weights
 from utils.metrics import (
     BoxLocalizationMeter,
     ClassificationMeter,
+    SegmentationMeter,
     detection_metrics,
     optimize_detection_threshold,
 )
 
 CLASS_NAMES = {4: ["no_tumor", "glioma", "meningioma", "pituitary"], 2: ["no_tumor", "tumor"]}
-DEFAULT_ANN = ["dataset/ds3_annotations.json"]
+DEFAULT_ANN = list(DEFAULT_ANNOTATION_FILES)
 
 
 def seed_everything(seed: int):
@@ -60,10 +61,11 @@ def build_split_dataset(
     exclude_fold: int | None = None,
     train: bool = True,
 ) -> UnifiedBrainMRIDataset:
+    ds_filter = None if (args.datasets and "all" in [d.lower() for d in args.datasets]) else args.datasets
     ds = UnifiedBrainMRIDataset(
         args.ann,
         train=train,
-        datasets=args.datasets,
+        datasets=ds_filter,
         split=split,
         fold=fold,
         exclude_fold=exclude_fold,
@@ -191,8 +193,10 @@ def evaluate_auto_prompts(
     max_samples: int = 32,
     threshold: float = 0.35,
     box_padding: float = 0.08,
+    eval_medsam: bool = False,
+    offline: bool = False,
 ) -> dict:
-    """Đánh giá cả 2 cơ chế Auto-Prompt (Weakly-Supervised Heatmap & Box Head) về Mean Box IoU & Pointing Game."""
+    """Đánh giá cả 2 cơ chế Auto-Prompt (Weakly-Supervised Heatmap & Box Head) về Mean Box IoU, Pointing Game & MedSAM Dice/IoU."""
     prompt_gen = AutoPromptGenerator(
         model=model,
         mode="auto",
@@ -201,6 +205,14 @@ def evaluate_auto_prompts(
     )
     hm_meter = BoxLocalizationMeter()
     reg_meter = BoxLocalizationMeter()
+    seg_hm_meter = SegmentationMeter()
+    seg_reg_meter = SegmentationMeter()
+
+    segmenter = None
+    if eval_medsam:
+        from models.sam_wrappers import MedSamBoxSegmenter
+
+        segmenter = MedSamBoxSegmenter(device=device, local_files_only=offline)
 
     tumor_indices = [i for i, r in enumerate(dataset.records) if int(r.get("has_tumor", 0)) == 1]
     if not tumor_indices:
@@ -218,6 +230,8 @@ def evaluate_auto_prompts(
         has_mask = bool(sample["has_mask"])
         gt_box_1024 = sample["gt_box"].numpy() if has_box else None
         gt_mask_1024 = sample["gt_mask"].numpy() if has_mask else None
+        sub_lbl = int(sample.get("sub_class_label", 1))
+        sub_name = CLASS_NAMES[4][sub_lbl] if 0 <= sub_lbl < 4 else "tumor"
 
         peak_pt = res["peak_points_1024"][0].detach().cpu().numpy()
         hm_box = res["heatmap_boxes_1024"][0].detach().cpu().numpy()
@@ -227,6 +241,10 @@ def evaluate_auto_prompts(
             peak_point_xy=peak_pt,
             gt_mask=gt_mask_1024,
         )
+        if segmenter is not None and has_mask:
+            pred_m_hm, _ = segmenter.predict(sample["image_1024"], hm_box)
+            seg_hm_meter.update(pred_m_hm, gt_mask_1024, sub_name)
+
         if res["regressed_boxes_1024"] is not None:
             reg_box = res["regressed_boxes_1024"][0].detach().cpu().numpy()
             reg_meter.update(
@@ -235,10 +253,17 @@ def evaluate_auto_prompts(
                 peak_point_xy=peak_pt,
                 gt_mask=gt_mask_1024,
             )
+            if segmenter is not None and has_mask:
+                pred_m_reg, _ = segmenter.predict(sample["image_1024"], reg_box)
+                seg_reg_meter.update(pred_m_reg, gt_mask_1024, sub_name)
 
     out = {"weakly_supervised_heatmap": hm_meter.summary()}
     if reg_meter.ious or reg_meter.hits:
         out["supervised_box_head"] = reg_meter.summary()
+    if seg_hm_meter.dices:
+        out["medsam_from_heatmap_prompt"] = seg_hm_meter.summary()
+    if seg_reg_meter.dices:
+        out["medsam_from_box_head_prompt"] = seg_reg_meter.summary()
     return out
 
 
@@ -413,6 +438,8 @@ def train_single_split(args, train_ds, val_ds, test_ds, out_dir: Path) -> dict:
             max_samples=args.prompt_samples,
             threshold=args.threshold,
             box_padding=args.box_padding,
+            eval_medsam=args.eval_medsam,
+            offline=args.offline,
         )
 
     save_json(out_dir / "test_metrics.json", test_metrics)
@@ -449,6 +476,7 @@ def main(argv=None):
     ap.add_argument("--threshold", type=float, default=0.35, help="Ngưỡng xác suất phát hiện khối u τ (mặc định 0.35)")
     ap.add_argument("--box-padding", type=float, default=0.08, help="Hệ số mở rộng hộp δ (mặc định 0.08 = +8%%)")
     ap.add_argument("--prompt-samples", type=int, default=16, help="Số mẫu đánh giá Auto-Prompt (0 = tắt)")
+    ap.add_argument("--eval-medsam", action="store_true", help="Chạy MedSAM trên Auto-Prompt để đánh giá Dice/IoU phân đoạn")
     ap.add_argument("--cv-5fold", action="store_true", help="Chạy 5-Fold Cross-Validation (dành cho Dataset 1)")
     ap.add_argument("--fold", type=int, default=None, help="Chỉ chạy 1 fold cụ thể trong 5-Fold CV (0..4)")
     ap.add_argument("--epochs", type=int, default=10)

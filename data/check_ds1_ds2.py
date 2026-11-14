@@ -79,7 +79,7 @@ def main():
     while len(tiles) % 4:
         tiles.append(np.zeros((256, 256, 3), np.uint8))
     grid = np.vstack([np.hstack(tiles[i:i + 4]) for i in range(0, len(tiles), 4)])
-    out = root / "reports/build_ds1_ds2"
+    out = root / "reports/tuan1/build_ds1_ds2"
     out.mkdir(parents=True, exist_ok=True)
     cv2.imencode(".png", grid)[1].tofile(str(out / "check_samples.png"))
     print(f"Đã lưu lưới ảnh minh họa: {out / 'check_samples.png'}")

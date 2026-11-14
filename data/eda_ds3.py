@@ -52,7 +52,7 @@ def inspect_image(path):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", default=str(Path(__file__).resolve().parents[1]))
-    ap.add_argument("--out", default="reports/eda_ds3")
+    ap.add_argument("--out", default="reports/tuan1/eda_ds3")
     ap.add_argument("--limit", type=int, default=None)
     args = ap.parse_args()
     root = Path(args.root)

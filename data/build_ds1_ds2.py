@@ -121,7 +121,7 @@ def main():
     (root / "dataset/ds2_annotations.json").write_text(
         json.dumps(ds2_records, ensure_ascii=False, indent=2), encoding="utf-8")
 
-    log_dir = root / "reports/build_ds1_ds2"
+    log_dir = root / "reports/tuan1/build_ds1_ds2"
     log_dir.mkdir(parents=True, exist_ok=True)
     fields = list(dict.fromkeys(k for row in logs for k in row))
     with open(log_dir / "crop_log.csv", "w", newline="", encoding="utf-8") as f:

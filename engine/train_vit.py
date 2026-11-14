@@ -35,7 +35,12 @@ from utils.metrics import ClassificationMeter
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 CLASS_NAMES = {4: ["no_tumor", "glioma", "meningioma", "pituitary"], 2: ["no_tumor", "tumor"]}
-DEFAULT_ANN = ["dataset/ds3_annotations.json"]
+DEFAULT_ANN = [
+    "dataset/ds1_annotations.json",
+    "dataset/ds2_annotations.json",
+    "dataset/ds3_annotations.json",
+    "dataset/brats2020_annotations.json",
+]
 DEFAULT_LR = {"linear_probe": (1e-3, 1e-3), "full_finetune": (2e-5, 1e-3)}   # (backbone, head)
 
 

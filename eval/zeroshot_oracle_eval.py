@@ -242,7 +242,7 @@ def main():
     ap.add_argument("--sam_ckpt", default=None)
     ap.add_argument("--medsam_ckpt", default=None)
     ap.add_argument("--device", default=None, help="cuda | cpu (mac dinh: tu chon)")
-    ap.add_argument("--out_dir", default="reports/week2/run")
+    ap.add_argument("--out_dir", default="reports/tuan2/week2/run")
     ap.add_argument("--limit", type=int, default=None, help="Chi chay N anh (lay ngau nhien, co seed)")
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--box_end", choices=["auto", "as_is"], default="auto",

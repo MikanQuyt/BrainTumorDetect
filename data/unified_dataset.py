@@ -26,6 +26,12 @@ from data.transforms import build_eval_transform, build_train_transform
 IMAGENET_MEAN = (0.485, 0.456, 0.406)
 IMAGENET_STD = (0.229, 0.224, 0.225)
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_ANNOTATION_FILES = (
+    "dataset/ds1_annotations.json",
+    "dataset/ds2_annotations.json",
+    "dataset/ds3_annotations.json",
+    "dataset/brats2020_annotations.json",
+)
 
 
 def _read(path, flag):
@@ -38,27 +44,41 @@ class UnifiedBrainMRIDataset(Dataset):
     """Trả về từ điển đồng nhất cho cả nhánh ViT (224) và nhánh MedSAM (1024).
 
     Args:
-        annotation_files: một hoặc nhiều file JSON chú thích.
+        annotation_files: một hoặc nhiều file JSON chú thích (mặc định nạp cả 4 bộ dữ liệu DS1, DS2, DS3, DS4).
         train: True dùng pipeline tăng cường; False dùng pipeline đánh giá. Bị ghi đè bởi `transform`.
         transform: Albumentations Compose tùy chỉnh (phải có bbox_params với label_fields=['class_labels']).
         datasets / split / fold / exclude_fold: lọc record theo bộ dữ liệu, tập chia, fold CV của DS1.
         root: thư mục gốc để nối với đường dẫn tương đối (mặc định: gốc dự án).
     """
 
-    def __init__(self, annotation_files, train=True, transform=None, datasets=None,
+    def __init__(self, annotation_files=None, train=True, transform=None, datasets=None,
                  split=None, fold=None, exclude_fold=None, root=None):
-        if isinstance(annotation_files, (str, Path)):
-            annotation_files = [annotation_files]
         self.root = Path(root) if root else PROJECT_ROOT
+        if annotation_files is None:
+            annotation_files = [
+                f for f in DEFAULT_ANNOTATION_FILES if (self.root / f).exists()
+            ]
+        elif isinstance(annotation_files, (str, Path)):
+            annotation_files = [annotation_files]
 
         records = []
         for f in annotation_files:
             path = Path(f)
             path = path if path.is_absolute() else self.root / path
-            with open(path, "r", encoding="utf-8") as fh:
-                records.extend(json.load(fh))
+            with open(path, "r", encoding="utf-8-sig") as fh:
+                loaded = json.load(fh)
+            for r in loaded:
+                # BraTS2020 là bộ dữ liệu Glioma: chuẩn hóa lát cắt có u (-1) về lớp 1 (glioma) cho huấn luyện 4 lớp
+                if r.get("dataset") == "brats2020" and int(r.get("has_tumor", 0)) == 1 and int(r.get("sub_class_label", -1)) == -1:
+                    r = dict(r, sub_class_label=1)
+                records.append(r)
 
-        ds_set = set([datasets] if isinstance(datasets, str) else datasets or [])
+        if isinstance(datasets, str):
+            ds_set = set() if datasets == "all" else {datasets}
+        else:
+            ds_list = list(datasets or [])
+            ds_set = set() if "all" in ds_list else set(ds_list)
+
         self.records = [
             r for r in records
             if (not ds_set or r["dataset"] in ds_set)
