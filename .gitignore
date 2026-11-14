@@ -16,3 +16,10 @@ __pycache__/
 *.nii.gz
 *.zip
 chinhsua*.md
+
+reports/week2/**/pred/
+reports/week2/_dry/
+reports/week2/_trial/
+reports/week2/_trial_ds2/
+reports/week2/_trial_analysis/
+reports/week2/ds4_analysis/
