@@ -1,0 +1,324 @@
+﻿{
+    "generated_at":  "20261114_144703",
+    "classification":  {
+                           "linear_probing":  {
+                                                  "accuracy":  0.8275,
+                                                  "macro_f1":  0.8262699659165857,
+                                                  "macro_precision":  0.8274202747607002,
+                                                  "macro_recall":  0.8275,
+                                                  "report":  {
+                                                                 "glioma":  {
+                                                                                "precision":  0.7636363636363637,
+                                                                                "recall":  0.84,
+                                                                                "f1-score":  0.8,
+                                                                                "support":  100.0
+                                                                            },
+                                                                 "meningioma":  {
+                                                                                    "precision":  0.7252747252747253,
+                                                                                    "recall":  0.66,
+                                                                                    "f1-score":  0.6910994764397905,
+                                                                                    "support":  100.0
+                                                                                },
+                                                                 "no_tumor":  {
+                                                                                  "precision":  0.8952380952380953,
+                                                                                  "recall":  0.94,
+                                                                                  "f1-score":  0.9170731707317074,
+                                                                                  "support":  100.0
+                                                                              },
+                                                                 "pituitary":  {
+                                                                                   "precision":  0.925531914893617,
+                                                                                   "recall":  0.87,
+                                                                                   "f1-score":  0.8969072164948454,
+                                                                                   "support":  100.0
+                                                                               },
+                                                                 "accuracy":  0.8275,
+                                                                 "macro avg":  {
+                                                                                   "precision":  0.8274202747607002,
+                                                                                   "recall":  0.8275,
+                                                                                   "f1-score":  0.8262699659165857,
+                                                                                   "support":  400.0
+                                                                               },
+                                                                 "weighted avg":  {
+                                                                                      "precision":  0.8274202747607003,
+                                                                                      "recall":  0.8275,
+                                                                                      "f1-score":  0.8262699659165859,
+                                                                                      "support":  400.0
+                                                                                  }
+                                                             },
+                                                  "confusion_matrix":  [
+                                                                           [
+                                                                               84,
+                                                                               15,
+                                                                               0,
+                                                                               1
+                                                                           ],
+                                                                           [
+                                                                               18,
+                                                                               66,
+                                                                               10,
+                                                                               6
+                                                                           ],
+                                                                           [
+                                                                               0,
+                                                                               6,
+                                                                               94,
+                                                                               0
+                                                                           ],
+                                                                           [
+                                                                               8,
+                                                                               4,
+                                                                               1,
+                                                                               87
+                                                                           ]
+                                                                       ],
+                                                  "mode":  "Linear Probing",
+                                                  "model":  "vit_tiny_patch16_224",
+                                                  "epochs":  10,
+                                                  "best_val_acc":  0.91,
+                                                  "test_acc":  0.8275,
+                                                  "test_loss":  0.3978217160701752,
+                                                  "elapsed_sec":  340.31979727745056,
+                                                  "history":  {
+                                                                  "train_loss":  [
+                                                                                     1.5402741541862488,
+                                                                                     0.7472938368320465,
+                                                                                     0.548082914352417,
+                                                                                     0.4706066417694092,
+                                                                                     0.407377197265625,
+                                                                                     0.36981550526618956,
+                                                                                     0.35183945620059964,
+                                                                                     0.3295913758277893,
+                                                                                     0.3107491204738617,
+                                                                                     0.29105655336380004
+                                                                                 ],
+                                                                  "train_acc":  [
+                                                                                    0.397,
+                                                                                    0.698,
+                                                                                    0.791,
+                                                                                    0.817,
+                                                                                    0.845,
+                                                                                    0.862,
+                                                                                    0.872,
+                                                                                    0.88,
+                                                                                    0.876,
+                                                                                    0.9
+                                                                                ],
+                                                                  "val_loss":  [
+                                                                                   0.9170892357826232,
+                                                                                   0.6045819652080536,
+                                                                                   0.48665998339653016,
+                                                                                   0.41742184638977053,
+                                                                                   0.38114511609077456,
+                                                                                   0.36926753938198087,
+                                                                                   0.3478298282623291,
+                                                                                   0.3307642912864685,
+                                                                                   0.3218133538961411,
+                                                                                   0.3021472555398941
+                                                                               ],
+                                                                  "val_acc":  [
+                                                                                  0.625,
+                                                                                  0.77,
+                                                                                  0.795,
+                                                                                  0.855,
+                                                                                  0.875,
+                                                                                  0.89,
+                                                                                  0.87,
+                                                                                  0.89,
+                                                                                  0.9,
+                                                                                  0.91
+                                                                              ]
+                                                              }
+                                              },
+                           "full_finetuning":  {
+                                                   "accuracy":  0.72,
+                                                   "macro_f1":  0.6838608653010276,
+                                                   "macro_precision":  0.740909090909091,
+                                                   "macro_recall":  0.72,
+                                                   "report":  {
+                                                                  "glioma":  {
+                                                                                 "precision":  0.6666666666666666,
+                                                                                 "recall":  0.92,
+                                                                                 "f1-score":  0.773109243697479,
+                                                                                 "support":  50.0
+                                                                             },
+                                                                  "meningioma":  {
+                                                                                     "precision":  0.8,
+                                                                                     "recall":  0.24,
+                                                                                     "f1-score":  0.36923076923076925,
+                                                                                     "support":  50.0
+                                                                                 },
+                                                                  "no_tumor":  {
+                                                                                   "precision":  0.696969696969697,
+                                                                                   "recall":  0.92,
+                                                                                   "f1-score":  0.7931034482758621,
+                                                                                   "support":  50.0
+                                                                               },
+                                                                  "pituitary":  {
+                                                                                    "precision":  0.8,
+                                                                                    "recall":  0.8,
+                                                                                    "f1-score":  0.8,
+                                                                                    "support":  50.0
+                                                                                },
+                                                                  "accuracy":  0.72,
+                                                                  "macro avg":  {
+                                                                                    "precision":  0.740909090909091,
+                                                                                    "recall":  0.72,
+                                                                                    "f1-score":  0.6838608653010276,
+                                                                                    "support":  200.0
+                                                                                },
+                                                                  "weighted avg":  {
+                                                                                       "precision":  0.740909090909091,
+                                                                                       "recall":  0.72,
+                                                                                       "f1-score":  0.6838608653010276,
+                                                                                       "support":  200.0
+                                                                                   }
+                                                              },
+                                                   "confusion_matrix":  [
+                                                                            [
+                                                                                46,
+                                                                                2,
+                                                                                0,
+                                                                                2
+                                                                            ],
+                                                                            [
+                                                                                14,
+                                                                                12,
+                                                                                17,
+                                                                                7
+                                                                            ],
+                                                                            [
+                                                                                2,
+                                                                                1,
+                                                                                46,
+                                                                                1
+                                                                            ],
+                                                                            [
+                                                                                7,
+                                                                                0,
+                                                                                3,
+                                                                                40
+                                                                            ]
+                                                                        ],
+                                                   "mode":  "Full Fine-tuning",
+                                                   "model":  "vit_tiny_patch16_224",
+                                                   "epochs":  2,
+                                                   "best_val_acc":  0.8333333333333334,
+                                                   "test_acc":  0.72,
+                                                   "test_loss":  0.6869356465339661,
+                                                   "elapsed_sec":  224.26588034629822,
+                                                   "history":  {
+                                                                   "train_loss":  [
+                                                                                      1.247800099849701,
+                                                                                      0.5689199894666672
+                                                                                  ],
+                                                                   "train_acc":  [
+                                                                                     0.45625,
+                                                                                     0.775
+                                                                                 ],
+                                                                   "val_loss":  [
+                                                                                    0.7106398542722067,
+                                                                                    0.5451505760351817
+                                                                                ],
+                                                                   "val_acc":  [
+                                                                                   0.7833333333333333,
+                                                                                   0.8333333333333334
+                                                                               ]
+                                                               }
+                                               }
+                       },
+    "segmentation":  {
+                         "model":  "Zero-shot MedSAM (medsam_vit_b.pth, ViT-B)",
+                         "checkpoint":  "medsam_vit_b.pth",
+                         "checkpoint_md5":  "3bb6db55bd0c9ca30b61248bca72f8d6",
+                         "prompt":  "Oracle Bounding Box (derived from GT mask)",
+                         "n_evaluated_slices":  50,
+                         "total_eval_time_sec":  493.94,
+                         "avg_time_per_slice_sec":  9.879,
+                         "mean_dice":  0.8964388895201715,
+                         "mean_iou":  0.8198724842793831,
+                         "mean_precision":  0.9519168787689916,
+                         "mean_recall":  0.8569704853237785,
+                         "mean_hd95":  8.287925604632443,
+                         "per_class":  {
+                                           "glioma":  {
+                                                          "n_slices":  15,
+                                                          "mean_dice":  0.8563953911935241,
+                                                          "mean_iou":  0.7606055867331711,
+                                                          "mean_precision":  0.9438393419336549,
+                                                          "mean_recall":  0.7997585127683615,
+                                                          "mean_hd95":  12.270300497741866
+                                                      },
+                                           "meningioma":  {
+                                                              "n_slices":  18,
+                                                              "mean_dice":  0.9214681487972243,
+                                                              "mean_iou":  0.8604152037622081,
+                                                              "mean_precision":  0.9523906931587182,
+                                                              "mean_recall":  0.898774504769489,
+                                                              "mean_hd95":  7.693568637426852
+                                                          },
+                                           "pituitary":  {
+                                                             "n_slices":  17,
+                                                             "mean_dice":  0.9052698193973925,
+                                                             "mean_iou":  0.8292392203089324,
+                                                             "mean_precision":  0.9585424313286954,
+                                                             "mean_recall":  0.8631885581654535,
+                                                             "mean_hd95":  5.403384546577106
+                                                         }
+                                       },
+                         "per_view":  {
+                                          "axial":  {
+                                                        "n_slices":  21,
+                                                        "mean_dice":  0.8877153984588512,
+                                                        "mean_iou":  0.8066006927742227,
+                                                        "mean_hd95":  8.828662424612332
+                                                    },
+                                          "coronal":  {
+                                                          "n_slices":  16,
+                                                          "mean_dice":  0.9115050991233382,
+                                                          "mean_iou":  0.8418086885149808,
+                                                          "mean_hd95":  6.6170387170254905
+                                                      },
+                                          "sagittal":  {
+                                                           "n_slices":  13,
+                                                           "mean_dice":  0.8919876555691759,
+                                                           "mean_iou":  0.8143131268823692,
+                                                           "mean_hd95":  9.470903834027332
+                                                       }
+                                      }
+                     },
+    "sam_everything":  {
+                           "title":  "SAM Everything Mode Mis-segmentation Proof",
+                           "model":  "Official SAM (sam_vit_b_01ec64.pth, ViT-B)",
+                           "checkpoint_md5":  "01ec64d29a2fca3f0661936605ae66f8",
+                           "total_images_tested":  50,
+                           "total_time_sec":  891.07,
+                           "avg_time_per_image_sec":  17.82,
+                           "overall":  {
+                                           "avg_masks_per_slice":  4.16,
+                                           "std_masks_per_slice":  2.55,
+                                           "avg_large_masks_per_slice":  1.74,
+                                           "avg_pct_large_masks":  54.52,
+                                           "avg_max_mask_coverage_pct":  50.29,
+                                           "max_single_mask_coverage_pct":  84.56,
+                                           "gt_subset_non_tumor_mask_pct":  89.77,
+                                           "gt_subset_mean_best_tumor_dice":  0.4361
+                                       },
+                           "by_source":  {
+                                             "BRISC_2025":  {
+                                                                "n":  25,
+                                                                "avg_masks":  5.08,
+                                                                "avg_pct_large":  45.37,
+                                                                "avg_max_coverage_pct":  49.14,
+                                                                "max_coverage_pct":  84.56
+                                                            },
+                                             "Dataset_1":  {
+                                                               "n":  25,
+                                                               "avg_masks":  3.24,
+                                                               "avg_pct_large":  63.67,
+                                                               "avg_max_coverage_pct":  51.43,
+                                                               "max_coverage_pct":  76.59
+                                                           }
+                                         },
+                           "scientific_conclusion":  "Without medical-specific prompts, SAM Everything Mode (sam_vit_b_01ec64.pth) generates an average of 4.16 masks per brain MRI scan across 25 BRISC 2025 and 25 Dataset 1 (Navoneel) scans. 54.52% of all detected masks encompass massive non-tumor anatomical structures (largest mask spanning an average of 50.29% and up to 84.6% of the entire scan), capturing the cranial bone ring, meninges, ventricles, and healthy cerebral hemispheres. On the 18 tumor slices with pixel-level ground truth, 89.77% of generated masks lie predominantly outside the tumor on skull/normal parenchyma. This empirically confirms that a prior ViT localization branch is mandatory before invoking SAM/MedSAM."
+                       }
+}

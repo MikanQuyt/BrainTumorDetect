@@ -1,0 +1,51 @@
+index,filename,source,class,num_masks,num_large_masks,pct_large_masks,max_mask_area_ratio,avg_mask_area_pixels,non_tumor_masks,best_tumor_dice,inference_time_sec
+1,brisc2025_test_00001_gl_ax_t1.jpg,BRISC 2025 (Dataset 3),glioma,5,1,0.2,0.4146,5692.8,5,0.0208,26.23
+2,brisc2025_test_00043_gl_ax_t1.jpg,BRISC 2025 (Dataset 3),glioma,3,2,0.6667,0.5496,21627.0,3,0.1724,27.97
+3,brisc2025_test_00085_gl_ax_t1.jpg,BRISC 2025 (Dataset 3),glioma,3,1,0.3333,0.4373,9614.3,3,0.0076,27.46
+4,brisc2025_test_00127_gl_co_t1.jpg,BRISC 2025 (Dataset 3),glioma,7,3,0.4286,0.5596,7709.7,6,0.9522,27.75
+5,brisc2025_test_00169_gl_sa_t1.jpg,BRISC 2025 (Dataset 3),glioma,3,2,0.6667,0.5939,22264.7,2,0.8017,26.65
+6,brisc2025_test_00211_gl_sa_t1.jpg,BRISC 2025 (Dataset 3),glioma,3,1,0.3333,0.331,7429.0,3,0.0,26.85
+7,brisc2025_test_00255_me_ax_t1.jpg,BRISC 2025 (Dataset 3),meningioma,12,2,0.1667,0.7668,5459.9,10,0.9634,26.5
+8,brisc2025_test_00306_me_ax_t1.jpg,BRISC 2025 (Dataset 3),meningioma,3,2,0.6667,0.7442,18725.0,2,0.9735,27.24
+9,brisc2025_test_00357_me_ax_t1.jpg,BRISC 2025 (Dataset 3),meningioma,4,1,0.25,0.4525,8114.5,3,0.9665,26.9
+10,brisc2025_test_00408_me_co_t1.jpg,BRISC 2025 (Dataset 3),meningioma,5,1,0.2,0.2515,3922.0,5,0.0,26.35
+11,brisc2025_test_00459_me_co_t1.jpg,BRISC 2025 (Dataset 3),meningioma,7,4,0.5714,0.5341,11263.6,6,0.9462,26.9
+12,brisc2025_test_00510_me_sa_t1.jpg,BRISC 2025 (Dataset 3),meningioma,7,2,0.2857,0.5025,9464.7,6,0.9699,26.83
+13,brisc2025_test_00701_pi_ax_t1.jpg,BRISC 2025 (Dataset 3),pituitary,5,1,0.2,0.5899,8224.0,5,0.0225,26.53
+14,brisc2025_test_00751_pi_ax_t1.jpg,BRISC 2025 (Dataset 3),pituitary,4,1,0.25,0.5862,10044.5,4,0.0457,26.94
+15,brisc2025_test_00801_pi_ax_t1.jpg,BRISC 2025 (Dataset 3),pituitary,1,1,1.0,0.6205,40667.0,1,0.0449,26.87
+16,brisc2025_test_00851_pi_co_t1.jpg,BRISC 2025 (Dataset 3),pituitary,2,2,1.0,0.321,16018.5,2,0.0,26.7
+17,brisc2025_test_00901_pi_co_t1.jpg,BRISC 2025 (Dataset 3),pituitary,5,0,0.0,0.0426,1363.0,4,0.943,22.69
+18,brisc2025_test_00951_pi_sa_t1.jpg,BRISC 2025 (Dataset 3),pituitary,9,2,0.2222,0.8456,7676.6,9,0.0198,12.23
+19,brisc2025_test_00561_no_ax_t1.jpg,BRISC 2025 (Dataset 3),no_tumor,4,2,0.5,0.4239,8307.2,,,12.1
+20,brisc2025_test_00581_no_ax_t1.jpg,BRISC 2025 (Dataset 3),no_tumor,5,3,0.6,0.5027,15665.2,,,12.41
+21,brisc2025_test_00601_no_ax_t1.jpg,BRISC 2025 (Dataset 3),no_tumor,2,2,1.0,0.3734,24349.5,,,12.18
+22,brisc2025_test_00621_no_co_t1.jpg,BRISC 2025 (Dataset 3),no_tumor,10,2,0.2,0.5468,7532.5,,,12.01
+23,brisc2025_test_00641_no_co_t1.jpg,BRISC 2025 (Dataset 3),no_tumor,11,0,0.0,0.0323,565.6,,,12.17
+24,brisc2025_test_00661_no_sa_t1.jpg,BRISC 2025 (Dataset 3),no_tumor,2,2,1.0,0.5347,32094.5,,,12.19
+25,brisc2025_test_00681_no_sa_t1.jpg,BRISC 2025 (Dataset 3),no_tumor,5,3,0.6,0.7287,11640.6,,,12.14
+26,Y1.jpg,Dataset 1 (Navoneel),tumor,3,3,1.0,0.6663,18439.7,,,12.4
+27,Y109.JPG,Dataset 1 (Navoneel),tumor,8,2,0.25,0.7659,8882.5,,,12.15
+28,Y13.jpg,Dataset 1 (Navoneel),tumor,2,1,0.5,0.2359,7741.0,,,11.96
+29,Y158.JPG,Dataset 1 (Navoneel),tumor,1,1,1.0,0.229,15006.0,,,12.09
+30,Y168.jpg,Dataset 1 (Navoneel),tumor,6,5,0.8333,0.5889,12814.8,,,12.18
+31,Y186.jpg,Dataset 1 (Navoneel),tumor,5,1,0.2,0.7162,9574.8,,,12.2
+32,Y22.jpg,Dataset 1 (Navoneel),tumor,4,1,0.25,0.6821,11247.5,,,12.04
+33,Y25.jpg,Dataset 1 (Navoneel),tumor,2,1,0.5,0.3233,10606.0,,,11.97
+34,Y26.jpg,Dataset 1 (Navoneel),tumor,2,1,0.5,0.344,11348.5,,,12.19
+35,Y36.JPG,Dataset 1 (Navoneel),tumor,1,1,1.0,0.6765,44335.0,,,12.21
+36,Y47.JPG,Dataset 1 (Navoneel),tumor,5,1,0.2,0.2545,4796.2,,,12.22
+37,Y6.jpg,Dataset 1 (Navoneel),tumor,1,1,1.0,0.3868,25350.0,,,12.15
+38,Y73.jpg,Dataset 1 (Navoneel),tumor,4,1,0.25,0.6769,11503.8,,,12.07
+39,1 no.jpeg,Dataset 1 (Navoneel),no_tumor,3,3,1.0,0.4825,12828.0,,,12.09
+40,18 no.jpg,Dataset 1 (Navoneel),no_tumor,5,2,0.4,0.5047,13394.6,,,12.15
+41,25 no.jpg,Dataset 1 (Navoneel),no_tumor,4,2,0.5,0.5024,16304.0,,,12.02
+42,32 no.jpg,Dataset 1 (Navoneel),no_tumor,2,2,1.0,0.5814,31562.5,,,12.3
+43,4 no.jpg,Dataset 1 (Navoneel),no_tumor,1,1,1.0,0.6978,45734.0,,,12.69
+44,47 no.jpg,Dataset 1 (Navoneel),no_tumor,5,1,0.2,0.4675,6201.4,,,13.76
+45,9 no.jpg,Dataset 1 (Navoneel),no_tumor,2,1,0.5,0.6851,22783.5,,,12.58
+46,N20.JPG,Dataset 1 (Navoneel),no_tumor,3,1,0.3333,0.3423,7598.3,,,13.18
+47,no 10.jpg,Dataset 1 (Navoneel),no_tumor,2,2,1.0,0.5748,32490.5,,,12.77
+48,no 8.jpg,Dataset 1 (Navoneel),no_tumor,5,5,1.0,0.5933,22283.4,,,12.65
+49,no 95.jpg,Dataset 1 (Navoneel),no_tumor,2,1,0.5,0.287,9450.0,,,12.49
+50,No13.jpg,Dataset 1 (Navoneel),no_tumor,3,3,1.0,0.5925,24938.3,,,12.59

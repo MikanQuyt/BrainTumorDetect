@@ -1,0 +1,60 @@
+{
+  "model": "Zero-shot MedSAM (medsam_vit_b.pth, ViT-B)",
+  "checkpoint": "medsam_vit_b.pth",
+  "checkpoint_md5": "3bb6db55bd0c9ca30b61248bca72f8d6",
+  "prompt": "Oracle Bounding Box (derived from GT mask)",
+  "n_evaluated_slices": 50,
+  "total_eval_time_sec": 493.94,
+  "avg_time_per_slice_sec": 9.879,
+  "mean_dice": 0.8964388895201715,
+  "mean_iou": 0.8198724842793831,
+  "mean_precision": 0.9519168787689916,
+  "mean_recall": 0.8569704853237785,
+  "mean_hd95": 8.287925604632443,
+  "per_class": {
+    "glioma": {
+      "n_slices": 15,
+      "mean_dice": 0.8563953911935241,
+      "mean_iou": 0.7606055867331711,
+      "mean_precision": 0.9438393419336549,
+      "mean_recall": 0.7997585127683615,
+      "mean_hd95": 12.270300497741866
+    },
+    "meningioma": {
+      "n_slices": 18,
+      "mean_dice": 0.9214681487972243,
+      "mean_iou": 0.8604152037622081,
+      "mean_precision": 0.9523906931587182,
+      "mean_recall": 0.898774504769489,
+      "mean_hd95": 7.693568637426852
+    },
+    "pituitary": {
+      "n_slices": 17,
+      "mean_dice": 0.9052698193973925,
+      "mean_iou": 0.8292392203089324,
+      "mean_precision": 0.9585424313286954,
+      "mean_recall": 0.8631885581654535,
+      "mean_hd95": 5.403384546577106
+    }
+  },
+  "per_view": {
+    "axial": {
+      "n_slices": 21,
+      "mean_dice": 0.8877153984588512,
+      "mean_iou": 0.8066006927742227,
+      "mean_hd95": 8.828662424612332
+    },
+    "coronal": {
+      "n_slices": 16,
+      "mean_dice": 0.9115050991233382,
+      "mean_iou": 0.8418086885149808,
+      "mean_hd95": 6.6170387170254905
+    },
+    "sagittal": {
+      "n_slices": 13,
+      "mean_dice": 0.8919876555691759,
+      "mean_iou": 0.8143131268823692,
+      "mean_hd95": 9.470903834027332
+    }
+  }
+}

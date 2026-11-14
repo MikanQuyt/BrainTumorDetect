@@ -1,4 +1,5 @@
 venv/
+.venv/
 dataset/*
 !dataset/ds1_annotations.json
 !dataset/ds2_annotations.json
@@ -7,16 +8,19 @@ dataset/*
 checkpoints/*
 !checkpoints/.gitkeep
 __pycache__/
-*.pyc
+*.py[cod]
 *.pth
 *.pt
+*.bin
 *.safetensors
 *.h5
 *.nii
 *.nii.gz
 *.zip
+*.tar.gz
+.DS_Store
+Thumbs.db
 chinhsua*.md
-
 reports/week2/**/pred/
 reports/week2/_dry/
 reports/week2/_trial/
