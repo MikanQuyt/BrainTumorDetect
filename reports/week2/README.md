@@ -117,3 +117,46 @@ python eval/analyze_week2.py --csv ds4=reports/week2/ds4/oracle_results.csv ds2=
 ```
 
 Phiên bản thư viện và checksum checkpoint được ghi trong `reports/week2/ds4/run_info.json` và `reports/week2/ds2/run_info.json`.
+
+
+
+
+## Phụ lục A: DS4 trên tập val chuẩn của `dev` (3.433 lát) và ảnh hưởng của hướng ảnh
+
+Sau khi viết các mục trên, nhóm phát hiện file `dataset/brats2020_annotations.json` trên `dev` (tên ảnh `volume_X_slice_Y`) định nghĩa tập val khác với tập val dùng ở các mục 3 đến 5 (chia theo ca, seed 42): val của `dev` có **3.433 lát u**, trong khi tập ở mục 3 có 3.313 lát u; hai tập chỉ trùng 540 lát. Hai file JSON chứa cùng 22.814 lát u của cùng các ca (22.814/22.814 hộp khớp nhau sau khi hoán đổi hai trục x và y), nên ảnh của `dev` là bản **chuyển vị** của ảnh dùng ở các mục trên. Thí nghiệm bổ sung: chạy lại SAM và MedSAM trên đúng 3.433 lát val của `dev`, dùng ảnh của chúng tôi chuyển vị (`--transpose`) để khớp hộp chuẩn trong JSON.
+
+Lưu ý: đây là kết quả thay thế (proxy), vì ảnh của `dev` được tạo từ dữ liệu `.h5` bằng quy trình riêng và cường độ có thể khác ảnh dùng ở đây. Kết quả nằm ở `reports/week2/ds4dev/` và phân tích ở `reports/week2/ds4_dev_val/`.
+
+### A.1. Kết quả trên val của `dev` (3.433 lát, 55 ca)
+
+| Phương pháp | Dice (TB lát) | Dice (TB theo ca) | IoU (TB lát) | IoU (TB theo ca) |
+|---|---|---|---|---|
+| SAM | 0,791 | 0,786 | 0,687 | 0,680 |
+| MedSAM | 0,766 | 0,760 | 0,649 | 0,641 |
+| Box-fill | 0,664 | 0,659 | 0,513 | 0,509 |
+
+So sánh ghép cặp MedSAM − SAM: Δ Dice = −0,025 (khoảng tin cậy 95%: −0,036 đến −0,014), MedSAM thắng 36,6% số lát, d_z theo ca = −0,60, Wilcoxon p < 0,001. Δ IoU = −0,038 (−0,051 đến −0,025).
+
+| Phân tầng (Δ Dice = MedSAM − SAM) | Nhóm 1 | Nhóm 2 | Nhóm 3 |
+|---|---|---|---|
+| Theo độ mờ biên (1 = mờ nhất) | −0,011 (−0,030 đến 0,006) | −0,027 (−0,042 đến −0,011) | −0,038 (−0,052 đến −0,023) |
+| Theo kích thước u (1 = nhỏ nhất) | −0,043 (−0,061 đến −0,024) | −0,024 (−0,041 đến −0,009) | −0,008 (−0,024 đến 0,007) |
+
+Mốc upper-bound trên tập này: SAM, Dice 0,7857 và IoU 0,6799 (trung bình theo ca).
+
+### A.2. Phép thử hướng ảnh (600 lát, so sánh ghép cặp)
+
+Cùng 600 lát của val `dev`, chạy ở hai hướng: ảnh chuyển vị (như trên `dev`) và ảnh để thẳng (hộp được hoán đổi x và y tương ứng). Box-fill cho kết quả giống hệt ở hai hướng (0,6646), xác nhận phép hoán đổi hộp là đúng.
+
+| Dice TB (600 lát) | Chuyển vị | Thẳng | Thẳng − chuyển vị |
+|---|---|---|---|
+| SAM | 0,7964 | 0,7888 | −0,0076 |
+| MedSAM | 0,7674 | 0,7844 | +0,0170 |
+| MedSAM − SAM | −0,029 | −0,004 | |
+
+Quan sát: khi ảnh chuyển vị, MedSAM mất khoảng 0,017 Dice còn SAM không giảm theo hướng đó; khi ảnh để thẳng, hai mô hình chênh nhau rất ít, phù hợp với kết quả ở mục 3. Đây là so sánh trung bình trên 600 lát, chưa có khoảng tin cậy, và chưa có giải thích cơ chế đã được kiểm chứng.
+
+### A.3. Hệ quả
+
+- Mốc upper-bound của DS4 phụ thuộc vào hướng ảnh được dùng: khoảng 0,79 (SAM) với ảnh theo hướng của `dev`, và khoảng 0,78 (hai mô hình ngang nhau) với ảnh để thẳng.
+- Cần nhóm thống nhất: (a) tập val chuẩn của DS4 là bản `dev` (3.433 lát) hay bản chia theo ca của tuần 2 (3.313 lát); (b) có sửa bước xuất PNG từ `.h5` để ảnh đúng hướng hay không. Báo cáo sẽ được cập nhật theo quyết định đó.

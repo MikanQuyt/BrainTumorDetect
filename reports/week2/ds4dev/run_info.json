@@ -1,0 +1,36 @@
+{
+  "tag": "ds4dev",
+  "ann": "dataset\\brats2020_annotations.json",
+  "split": "val",
+  "fold": null,
+  "n_images": 3433,
+  "device": "cuda",
+  "dry_run": false,
+  "seed": 0,
+  "box_end": "auto",
+  "transpose": true,
+  "img_template": "C:/TTNT/DoAn/datasets/BraTS2020_png/images/BraTS20_Training_{volume:03d}_z{slice:03d}.png",
+  "mask_template": "C:/TTNT/DoAn/datasets/BraTS2020_png/masks/BraTS20_Training_{volume:03d}_z{slice:03d}.png",
+  "multimask_output": false,
+  "medsam_threshold": 0.5,
+  "model_type": "vit_b",
+  "torch": "2.11.0+cu128",
+  "segment_anything": "1.0",
+  "sam_ckpt": {
+    "file": "sam_vit_b_01ec64.pth",
+    "bytes": 375042383,
+    "md5": "01ec64d29a2fca3f0661936605ae66f8"
+  },
+  "medsam_ckpt": {
+    "file": "medsam_vit_b.pth",
+    "bytes": 375049145,
+    "md5": "3bb6db55bd0c9ca30b61248bca72f8d6"
+  },
+  "started": "2026-11-14 12:24:43",
+  "box_conventions": {
+    "excl": 3433
+  },
+  "n_errors": 0,
+  "errors": [],
+  "finished": "2026-11-14 13:10:54"
+}
