@@ -207,7 +207,7 @@ def overlay(img, mask, color):
     return out
 
 
-def fig_qualitative(ds, df, csv_dir, out):
+def fig_qualitative(ds, df, csv_dir, out, transpose=False):
     d = df.copy()
     d["delta"] = d["dice_medsam"] - d["dice_sam"]
     d = d.sort_values("delta").reset_index(drop=True)
@@ -220,6 +220,8 @@ def fig_qualitative(ds, df, csv_dir, out):
             img = cv2.imdecode(buf, cv2.IMREAD_COLOR)[..., ::-1]
             gt = cv2.imdecode(np.fromfile(r["mask_abs"], np.uint8), cv2.IMREAD_UNCHANGED)
             gt = (gt[..., 0] if gt.ndim == 3 else gt) > 0
+            if transpose:                      # cung he toa do voi mask du doan da luu
+                img, gt = np.ascontiguousarray(img.transpose(1, 0, 2)), np.ascontiguousarray(gt.T)
             preds = {}
             for key in ("sam", "medsam"):
                 p = csv_dir / "pred" / key / f"{int(r['idx']):06d}.png"
@@ -284,7 +286,7 @@ def main():
     fig_strata(blur, out)
     for ds, df in dfs.items():
         if (csv_dirs[ds] / "pred" / "sam").exists():
-            fig_qualitative(ds, df, csv_dirs[ds], out)
+            fig_qualitative(ds, df, csv_dirs[ds], out, bool(run_infos[ds].get("transpose")))
 
     # ---- markdown
     md = ["# Tuan 2: Zero-shot SAM vs MedSAM voi oracle GT box", ""]

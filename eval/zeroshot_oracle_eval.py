@@ -208,6 +208,8 @@ def case_key(r):
     for k in ("case_id", "patient_id"):
         if r.get(k):
             return str(r[k])
+    if r.get("volume") is not None:
+        return f"volume_{r['volume']}"
     return Path(str(r.get("img_path", ""))).stem
 
 
@@ -245,6 +247,14 @@ def main():
     ap.add_argument("--out_dir", default="reports/week2/run")
     ap.add_argument("--limit", type=int, default=None, help="Chi chay N anh (lay ngau nhien, co seed)")
     ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--img_template", default=None,
+                    help="Mau duong dan anh, vi du C:/.../images/BraTS20_Training_{volume:03d}_z{slice:03d}.png "
+                         "(dung cac truong cua ban ghi JSON); thay cho img_path trong JSON")
+    ap.add_argument("--mask_template", default=None, help="Giong --img_template nhung cho mask")
+    ap.add_argument("--transpose", action="store_true",
+                    help="Hoan doi hai truc cua anh va mask (de khop he toa do hop chuan cua JSON)")
+    ap.add_argument("--swap_box_xy", action="store_true",
+                    help="Hoan doi x va y cua gt_box")
     ap.add_argument("--box_end", choices=["auto", "as_is"], default="auto",
                     help="auto: neu hop theo quy uoc bao gom diem cuoi thi cong them 1 pixel")
     ap.add_argument("--no_save_masks", action="store_true", help="Khong luu mask du doan")
@@ -300,6 +310,7 @@ def main():
 
     info = dict(tag=tag, ann=str(args.ann), split=args.split, fold=args.fold, n_images=len(recs),
                 device=device, dry_run=bool(args.dry_run), seed=args.seed, box_end=args.box_end,
+                transpose=bool(args.transpose), img_template=args.img_template, mask_template=args.mask_template,
                 multimask_output=False, medsam_threshold=0.5, model_type="vit_b",
                 torch=pkg_version("torch"), segment_anything=pkg_version("segment-anything"),
                 sam_ckpt=None, medsam_ckpt=None, started=time.strftime("%Y-%m-%d %H:%M:%S"))
@@ -328,13 +339,19 @@ def main():
         if idx in done:
             continue
         try:
-            img_p, msk_p = resolve(r["img_path"], args.root), resolve(r["mask_path"], args.root)
+            img_p = Path(args.img_template.format(**r)) if args.img_template else resolve(r["img_path"], args.root)
+            msk_p = Path(args.mask_template.format(**r)) if args.mask_template else resolve(r["mask_path"], args.root)
             img, mask = load_rgb(img_p), load_mask(msk_p)
+            if args.transpose:
+                img = np.ascontiguousarray(img.transpose(1, 0, 2))
+                mask = np.ascontiguousarray(mask.T)
             if img.shape[:2] != mask.shape:
                 raise ValueError(f"kich thuoc anh {img.shape[:2]} != mask {mask.shape}")
             if not mask.any():
                 raise ValueError("mask rong")
             gt_box = np.asarray(r["gt_box"], dtype=np.float32)
+            if args.swap_box_xy:
+                gt_box = gt_box[[1, 0, 3, 2]]
             conv = box_convention(gt_box, mask)
             conv_counter[conv] += 1
             box = gt_box.copy()
