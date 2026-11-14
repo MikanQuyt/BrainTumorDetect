@@ -1,4 +1,4 @@
-"""Utils package: đo lường tự động phân loại & phân vùng và quản lý checkpoint SAM/MedSAM."""
+"""Utils package: đo lường tự động phân loại, định vị & phân vùng, hàm mất mát và quản lý checkpoint."""
 from utils.checkpoints import (
     CHECKPOINTS,
     CKPT_DIR,
@@ -7,14 +7,28 @@ from utils.checkpoints import (
     md5sum,
     verify_checkpoint,
 )
+from utils.losses import (
+    BoxRegressionLoss,
+    FocalLossWithLabelSmoothing,
+    GIoULoss,
+    WeightedLabelSmoothingCrossEntropy,
+    box_iou_tensor,
+    build_classification_loss,
+    compute_class_weights,
+    generalized_box_iou_tensor,
+)
 from utils.metrics import (
+    BoxLocalizationMeter,
     ClassificationMeter,
     SegmentationMeter,
+    box_iou_score,
     classification_metrics,
     detection_metrics,
     dice_score,
     hd95,
     iou_score,
+    optimize_detection_threshold,
+    pointing_game_hit,
     segmentation_metrics,
 )
 
@@ -25,12 +39,24 @@ __all__ = [
     "download_checkpoint",
     "md5sum",
     "verify_checkpoint",
+    "BoxRegressionLoss",
+    "FocalLossWithLabelSmoothing",
+    "GIoULoss",
+    "WeightedLabelSmoothingCrossEntropy",
+    "box_iou_tensor",
+    "build_classification_loss",
+    "compute_class_weights",
+    "generalized_box_iou_tensor",
+    "BoxLocalizationMeter",
     "ClassificationMeter",
     "SegmentationMeter",
+    "box_iou_score",
     "classification_metrics",
     "detection_metrics",
     "dice_score",
     "hd95",
     "iou_score",
+    "optimize_detection_threshold",
+    "pointing_game_hit",
     "segmentation_metrics",
 ]

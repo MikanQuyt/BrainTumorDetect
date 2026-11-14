@@ -21,8 +21,9 @@ from scipy import ndimage
 from sklearn.metrics import confusion_matrix, precision_recall_fscore_support, roc_auc_score
 
 __all__ = [
-    "classification_metrics", "detection_metrics", "ClassificationMeter",
+    "classification_metrics", "detection_metrics", "optimize_detection_threshold", "ClassificationMeter",
     "dice_score", "iou_score", "hd95", "segmentation_metrics", "SegmentationMeter",
+    "box_iou_score", "pointing_game_hit", "BoxLocalizationMeter",
 ]
 
 
@@ -113,6 +114,26 @@ def detection_metrics(y_true, y_prob, no_tumor_class: int = 0, threshold: float 
         "f1": div(2 * tp, 2 * tp + fp + fn),
         "auc": float(roc_auc_score(t, p_tumor)) if 0 < t.sum() < len(t) else float("nan"),
     }
+
+
+def optimize_detection_threshold(
+    y_true,
+    y_prob,
+    no_tumor_class: int = 0,
+    target_recall: float = 0.95,
+    thresholds: Sequence[float] | None = None,
+) -> dict:
+    """Quét ngưỡng quyết định τ (Threshold Moving) để đạt Recall >= target_recall với F1 cao nhất."""
+    if thresholds is None:
+        thresholds = [round(t, 2) for t in np.arange(0.20, 0.81, 0.05)]
+    candidates = [detection_metrics(y_true, y_prob, no_tumor_class=no_tumor_class, threshold=float(t))
+                  for t in thresholds]
+    feasible = [c for c in candidates if not np.isnan(c["recall"]) and c["recall"] >= target_recall]
+    if feasible:
+        best = max(feasible, key=lambda c: (c["f1"], c["specificity"], -c["threshold"]))
+    else:
+        best = max(candidates, key=lambda c: (c["recall"] if not np.isnan(c["recall"]) else -1.0, c["f1"]))
+    return {"best": best, "target_recall": target_recall, "curve": candidates}
 
 
 class ClassificationMeter:
@@ -214,3 +235,80 @@ class SegmentationMeter:
                       "median": float(np.median(ok)) if len(ok) else float("nan")}
         out["hd95_n_undefined"] = int(np.isnan([r["hd95"] for r in self.rows]).sum())
         return out
+
+
+# ============================================================ định vị tự động (Box IoU & Pointing Game)
+def box_iou_score(pred_box: Sequence[float] | np.ndarray, gt_box: Sequence[float] | np.ndarray) -> float:
+    """Tính IoU giữa 2 hộp giới hạn 1D [x_min, y_min, x_max, y_max] (hệ pixel hoặc chuẩn hóa [0, 1])."""
+    p = np.asarray(pred_box, dtype=np.float64).reshape(4)
+    g = np.asarray(gt_box, dtype=np.float64).reshape(4)
+    px1, py1, px2, py2 = min(p[0], p[2]), min(p[1], p[3]), max(p[0], p[2]), max(p[1], p[3])
+    gx1, gy1, gx2, gy2 = min(g[0], g[2]), min(g[1], g[3]), max(g[0], g[2]), max(g[1], g[3])
+
+    iw = max(0.0, min(px2, gx2) - max(px1, gx1))
+    ih = max(0.0, min(py2, gy2) - max(py1, gy1))
+    inter = iw * ih
+    area_p = max(0.0, px2 - px1) * max(0.0, py2 - py1)
+    area_g = max(0.0, gx2 - gx1) * max(0.0, gy2 - gy1)
+    union = area_p + area_g - inter
+    if union <= 0.0:
+        return 1.0 if area_p == 0.0 and area_g == 0.0 else 0.0
+    return float(inter / union)
+
+
+def pointing_game_hit(
+    point_xy: Sequence[float] | np.ndarray,
+    gt_mask: np.ndarray | None = None,
+    gt_box: Sequence[float] | np.ndarray | None = None,
+) -> bool:
+    """Kiểm tra tâm điểm cực đại (x, y) có rơi trúng vào trong khối u (gt_mask > 0 hoặc trong gt_box) hay không."""
+    pt = np.asarray(point_xy, dtype=np.float64).reshape(2)
+    x, y = float(pt[0]), float(pt[1])
+    if gt_mask is not None:
+        m = _bin(gt_mask)
+        if m.any():
+            h, w = m.shape[:2]
+            xi = int(np.clip( round(x), 0, w - 1))
+            yi = int(np.clip(round(y), 0, h - 1))
+            return bool(m[yi, xi])
+    if gt_box is not None:
+        g = np.asarray(gt_box, dtype=np.float64).reshape(4)
+        gx1, gy1, gx2, gy2 = min(g[0], g[2]), min(g[1], g[3]), max(g[0], g[2]), max(g[1], g[3])
+        if gx2 > gx1 and gy2 > gy1:
+            return bool((gx1 <= x <= gx2) and (gy1 <= y <= gy2))
+    return False
+
+
+class BoxLocalizationMeter:
+    """Tích lũy và tính Mean Box IoU, IoU@0.5, IoU@0.75 và Pointing Game Accuracy cho bộ tự sinh lời nhắc."""
+
+    def __init__(self):
+        self.ious: list[float] = []
+        self.hits: list[bool] = []
+
+    def update(
+        self,
+        pred_box: Sequence[float] | np.ndarray | None = None,
+        gt_box: Sequence[float] | np.ndarray | None = None,
+        peak_point_xy: Sequence[float] | np.ndarray | None = None,
+        gt_mask: np.ndarray | None = None,
+    ):
+        if pred_box is not None and gt_box is not None:
+            self.ious.append(box_iou_score(pred_box, gt_box))
+        if peak_point_xy is not None and (gt_mask is not None or gt_box is not None):
+            self.hits.append(pointing_game_hit(peak_point_xy, gt_mask=gt_mask, gt_box=gt_box))
+
+    def summary(self) -> dict:
+        arr = np.asarray(self.ious, dtype=np.float64)
+        hits = np.asarray(self.hits, dtype=np.float64)
+        return {
+            "n_boxes": int(len(arr)),
+            "mean_box_iou": float(arr.mean()) if len(arr) else float("nan"),
+            "sd_box_iou": float(arr.std(ddof=1)) if len(arr) > 1 else float("nan"),
+            "median_box_iou": float(np.median(arr)) if len(arr) else float("nan"),
+            "iou_at_50": float((arr >= 0.50).mean()) if len(arr) else float("nan"),
+            "iou_at_75": float((arr >= 0.75).mean()) if len(arr) else float("nan"),
+            "n_points": int(len(hits)),
+            "pointing_game_acc": float(hits.mean()) if len(hits) else float("nan"),
+        }
+

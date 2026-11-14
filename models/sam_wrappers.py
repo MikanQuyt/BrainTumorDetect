@@ -57,15 +57,29 @@ class SamBoxSegmenter:
         self.predictor = SamPredictor(model)
 
     @torch.no_grad()
-    def segment(self, image_rgb: np.ndarray, box_xyxy) -> np.ndarray:
+    def segment(
+        self,
+        image_rgb: np.ndarray,
+        box_xyxy=None,
+        point_coords: np.ndarray | None = None,
+        point_labels: np.ndarray | None = None,
+    ) -> np.ndarray:
         h, w = image_rgb.shape[:2]
         self.predictor.set_image(np.ascontiguousarray(image_rgb), image_format="RGB")
-        masks, _, _ = self.predictor.predict(box=_clip_box(box_xyxy, h, w), multimask_output=False)
+        box = _clip_box(box_xyxy, h, w) if box_xyxy is not None else None
+        pts = np.asarray(point_coords, dtype=np.float32) if point_coords is not None else None
+        lbls = np.asarray(point_labels, dtype=np.int32) if point_labels is not None else None
+        masks, _, _ = self.predictor.predict(
+            point_coords=pts,
+            point_labels=lbls,
+            box=box,
+            multimask_output=False,
+        )
         return masks[0].astype(bool)
 
 
 class MedSamBoxSegmenter:
-    """MedSAM với prompt là một hộp giới hạn (quy trình suy luận chính thức)."""
+    """MedSAM với prompt là một hộp giới hạn hoặc Hybrid Prompt (Box + Points)."""
 
     name = "MedSAM"
 
@@ -84,12 +98,29 @@ class MedSamBoxSegmenter:
         return (b / np.array([w, h, w, h], dtype=np.float32) * 1024.0)[None, :]
 
     @torch.no_grad()
-    def segment(self, image_rgb: np.ndarray, box_xyxy) -> np.ndarray:
+    def segment(
+        self,
+        image_rgb: np.ndarray,
+        box_xyxy=None,
+        point_coords: np.ndarray | None = None,
+        point_labels: np.ndarray | None = None,
+    ) -> np.ndarray:
         h, w = image_rgb.shape[:2]
         x = self.preprocess(image_rgb).to(self.device)
         embed = self.model.image_encoder(x)
-        box = torch.as_tensor(self.box_to_1024(box_xyxy, h, w), dtype=torch.float, device=self.device)[:, None, :]
-        sparse, dense = self.model.prompt_encoder(points=None, boxes=box, masks=None)
+        box = (
+            torch.as_tensor(self.box_to_1024(box_xyxy, h, w), dtype=torch.float, device=self.device)[:, None, :]
+            if box_xyxy is not None
+            else None
+        )
+        points = None
+        if point_coords is not None and point_labels is not None:
+            pts = np.asarray(point_coords, dtype=np.float32).reshape(-1, 2)
+            pts_1024 = pts / np.array([w, h], dtype=np.float32) * 1024.0
+            coords_t = torch.as_tensor(pts_1024[None, :, :], dtype=torch.float, device=self.device)
+            labels_t = torch.as_tensor(np.asarray(point_labels, dtype=np.int64).reshape(1, -1), device=self.device)
+            points = (coords_t, labels_t)
+        sparse, dense = self.model.prompt_encoder(points=points, boxes=box, masks=None)
         logits, _ = self.model.mask_decoder(
             image_embeddings=embed, image_pe=self.model.prompt_encoder.get_dense_pe(),
             sparse_prompt_embeddings=sparse, dense_prompt_embeddings=dense, multimask_output=False)

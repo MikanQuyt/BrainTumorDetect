@@ -22,3 +22,28 @@ labels:
   1: Glioma
   2: Meningioma
   3: Pituitary
+
+vit_lora:
+  model_name: google/vit-base-patch16-224-in21k
+  lora_r: 8
+  lora_alpha: 16
+  lora_dropout: 0.1
+  target_modules:
+    - query
+    - value
+  loss_type: focal                 # focal | weighted_ce
+  label_smoothing: 0.05
+  focal_gamma: 2.0
+  use_box_head: true
+  sfp_dim: 128
+  giou_weight: 1.0
+  l1_weight: 1.0
+  box_loss_weight: 1.0
+
+auto_prompt:
+  mode: auto                       # auto | weakly_supervised | box_head | hybrid_box
+  detection_threshold: 0.35        # P(Tumor) >= 0.35 -> Recall > 95%
+  box_padding: 0.08                # Mở rộng biên hộp +8%
+  heatmap_threshold: 0.50
+  alpha_layercam: 0.65
+  beta_multiplicative: 0.35
