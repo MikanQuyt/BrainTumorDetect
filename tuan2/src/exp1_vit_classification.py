@@ -60,14 +60,15 @@ def build_transforms(train: bool):
         ])
 
 
-def get_stratified_subset(dataset, samples_per_class, seed=42):
-    """Select exactly samples_per_class from each class for fast balanced training on CPU."""
-    np.random.seed(seed)
+def get_stratified_subset(dataset, samples_per_class, seed=42, exclude_indices=None):
+    """Select exactly samples_per_class from each class (disjoint from exclude_indices)."""
+    rng = np.random.RandomState(seed)
+    excluded = set(exclude_indices or [])
     targets = np.array(dataset.targets)
     indices = []
     for c in range(len(dataset.classes)):
-        c_idx = np.where(targets == c)[0]
-        chosen = np.random.choice(c_idx, min(len(c_idx), samples_per_class), replace=False)
+        c_idx = [i for i in np.where(targets == c)[0] if i not in excluded]
+        chosen = rng.choice(c_idx, min(len(c_idx), samples_per_class), replace=False)
         indices.extend(chosen.tolist())
     return Subset(dataset, indices)
 
@@ -172,7 +173,7 @@ def run_linear_probing(device):
     classes   = train_raw.classes
 
     train_sub = get_stratified_subset(train_raw, samples_per_class=250, seed=SEED)  # 1000 train
-    val_sub   = get_stratified_subset(train_raw, samples_per_class=50, seed=SEED+1)  # 200 val
+    val_sub   = get_stratified_subset(train_raw, samples_per_class=50, seed=SEED+1, exclude_indices=train_sub.indices)  # 200 val (disjoint)
     test_sub  = get_stratified_subset(test_raw,  samples_per_class=100, seed=SEED)  # 400 test
 
     train_loader = DataLoader(train_sub, batch_size=32, shuffle=False)
@@ -277,7 +278,7 @@ def run_full_finetuning(device):
     classes   = train_raw.classes
 
     train_sub = get_stratified_subset(train_raw, samples_per_class=40, seed=SEED)  # 160 train (fast & effective on CPU)
-    val_sub   = get_stratified_subset(train_raw, samples_per_class=15, seed=SEED+1)  # 60 val
+    val_sub   = get_stratified_subset(train_raw, samples_per_class=15, seed=SEED+1, exclude_indices=train_sub.indices)  # 60 val (disjoint)
     test_sub  = get_stratified_subset(test_raw,  samples_per_class=50, seed=SEED)   # 200 test
 
     train_loader = DataLoader(train_sub, batch_size=16, shuffle=True)

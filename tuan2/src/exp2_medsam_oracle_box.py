@@ -1,8 +1,8 @@
 """
 Experiment 2: Zero-shot MedSAM Segmentation with Oracle Box Prompt
   - Uses GT segmentation masks to derive tight bounding-box prompts (Oracle Box)
-  - Runs MedSAM inference on BRISC 2025 Validation/Test set
-  - Computes Dice, IoU, Precision, Recall per image, per class, and per view
+  - Runs official MedSAM (medsam_vit_b.pth, ViT-B) inference on BRISC 2025 Test set
+  - Computes Dice, IoU, Precision, Recall, and HD95 per image, per class, and per view
 
 Outputs (in results/segmentation/):
   - medsam_oracle_box_metrics.json
@@ -17,6 +17,7 @@ import logging
 import time
 from pathlib import Path
 
+import cv2
 import numpy as np
 from PIL import Image
 
@@ -28,22 +29,59 @@ from utils import (seed_everything, get_device, load_binary_mask, mask_to_bbox,
 log = logging.getLogger("medsam_seg")
 
 import torch
+import torch.nn.functional as F
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 
-from mobile_sam.build_sam import build_sam_vit_t
-from segment_anything import SamPredictor
+from segment_anything import sam_model_registry
 
 
-def load_sam_model(device):
-    ckpt_path = CKPT_DIR / "mobile_sam.pt"
-    log.info(f"Loading SAM model from {ckpt_path}...")
-    sam = build_sam_vit_t(str(ckpt_path)).to(device)
-    sam.eval()
-    predictor = SamPredictor(sam)
-    return predictor
+def load_medsam_model(device):
+    ckpt_path = MEDSAM_CKPT
+    if not ckpt_path.exists():
+        raise FileNotFoundError(f"Missing MedSAM checkpoint at {ckpt_path}")
+    log.info(f"Loading official MedSAM (ViT-B) from {ckpt_path}...")
+    model = sam_model_registry["vit_b"](checkpoint=None)
+    state_dict = torch.load(ckpt_path, map_location="cpu", weights_only=True)
+    model.load_state_dict(state_dict)
+    return model.to(device).eval()
+
+
+@torch.no_grad()
+def medsam_infer(model, img_np: np.ndarray, bbox, device) -> np.ndarray:
+    """Official MedSAM inference pipeline: 1024x1024 min-max [0,1], box in 1024 coords, sigmoid > 0.5."""
+    H, W = img_np.shape[:2]
+    img_1024 = cv2.resize(img_np, (1024, 1024), interpolation=cv2.INTER_CUBIC).astype(np.float32)
+    img_1024 = (img_1024 - img_1024.min()) / np.clip(img_1024.max() - img_1024.min(), a_min=1e-8, a_max=None)
+    img_tensor = torch.from_numpy(img_1024).permute(2, 0, 1).unsqueeze(0).to(device)
+
+    box_np = np.array([bbox], dtype=np.float32)
+    box_1024 = box_np / np.array([W, H, W, H], dtype=np.float32) * 1024.0
+    box_tensor = torch.as_tensor(box_1024, dtype=torch.float32, device=device)[:, None, :]
+
+    image_embedding = model.image_encoder(img_tensor)
+    sparse_embeddings, dense_embeddings = model.prompt_encoder(
+        points=None,
+        boxes=box_tensor,
+        masks=None,
+    )
+    low_res_logits, _ = model.mask_decoder(
+        image_embeddings=image_embedding,
+        image_pe=model.prompt_encoder.get_dense_pe(),
+        sparse_prompt_embeddings=sparse_embeddings,
+        dense_prompt_embeddings=dense_embeddings,
+        multimask_output=False,
+    )
+    low_res_pred = torch.sigmoid(low_res_logits)
+    low_res_pred = F.interpolate(
+        low_res_pred,
+        size=(H, W),
+        mode="bilinear",
+        align_corners=False,
+    )
+    return (low_res_pred.squeeze().cpu().numpy() > 0.5)
 
 
 def iter_test_samples(limit=None):
@@ -52,7 +90,6 @@ def iter_test_samples(limit=None):
     """
     img_files = sorted(SEG_TEST_IMG.glob("*.jpg"))
     if limit:
-        # Stratify / sample across views and classes
         step = max(1, len(img_files) // limit)
         img_files = img_files[::step][:limit]
 
@@ -92,6 +129,7 @@ def save_qualitative_grid(samples: list, out_path: Path):
         box = s["box"]
         dice = s["metrics"]["dice"]
         iou  = s["metrics"]["iou"]
+        hd95 = s["metrics"]["hd95"]
 
         # 1. Original MRI + Oracle Box
         axes[i, 0].imshow(img)
@@ -110,7 +148,7 @@ def save_qualitative_grid(samples: list, out_path: Path):
         # 3. MedSAM Prediction
         axes[i, 2].imshow(img)
         axes[i, 2].imshow(prd, alpha=0.5, cmap="Blues")
-        axes[i, 2].set_title("MedSAM Prediction", fontsize=10, fontweight="bold")
+        axes[i, 2].set_title("MedSAM (ViT-B) Prediction", fontsize=10, fontweight="bold")
         axes[i, 2].axis("off")
 
         # 4. Error Overlay
@@ -124,7 +162,7 @@ def save_qualitative_grid(samples: list, out_path: Path):
 
         axes[i, 3].imshow(img)
         axes[i, 3].imshow(overlay, alpha=0.55)
-        axes[i, 3].set_title(f"Overlap (TP/FP/FN)\nDice={dice*100:.1f}% | IoU={iou*100:.1f}%", fontsize=10, fontweight="bold")
+        axes[i, 3].set_title(f"Overlap (TP/FP/FN)\nDice={dice*100:.1f}% | IoU={iou*100:.1f}% | HD95={hd95:.1f}px", fontsize=10, fontweight="bold")
         axes[i, 3].axis("off")
 
     patches = [
@@ -134,7 +172,7 @@ def save_qualitative_grid(samples: list, out_path: Path):
         mpatches.Patch(color="cyan", label="Oracle Bounding Box Prompt"),
     ]
     fig.legend(handles=patches, loc="lower center", ncol=4, fontsize=11, frameon=True)
-    fig.suptitle("Zero-shot MedSAM with Oracle Box Prompt -- BRISC 2025 Benchmark",
+    fig.suptitle("Zero-shot MedSAM (medsam_vit_b.pth) with Oracle Box Prompt -- BRISC 2025 Benchmark",
                  fontsize=14, fontweight="bold", y=0.995)
     plt.tight_layout(rect=[0, 0.04, 1, 0.99])
     plt.savefig(out_path, dpi=120, bbox_inches="tight")
@@ -146,12 +184,12 @@ def main():
     seed_everything(SEED)
     device = get_device("cpu")
 
-    predictor = load_sam_model(device)
+    model = load_medsam_model(device)
 
     # Evaluate on a representative set of 50 test slices covering all classes and planes
     eval_limit = SEG_EVAL_LIMIT or 50
     test_samples = iter_test_samples(limit=eval_limit)
-    log.info(f"Evaluating Zero-shot MedSAM on {len(test_samples)} slices...")
+    log.info(f"Evaluating Zero-shot MedSAM (medsam_vit_b.pth) on {len(test_samples)} slices...")
 
     results = []
     qual_samples = []
@@ -172,19 +210,9 @@ def main():
         if bbox is None:
             continue
 
-        box_arr = np.array([bbox])  # shape (1, 4)
-
         t_start = time.time()
-        predictor.set_image(img_np)
-        masks, scores, _ = predictor.predict(
-            point_coords=None,
-            point_labels=None,
-            box=box_arr,
-            multimask_output=False,
-        )
+        pred_mask = medsam_infer(model, img_np, bbox, device)
         inf_time = time.time() - t_start
-
-        pred_mask = masks[0].astype(bool)
 
         m = compute_seg_metrics(pred_mask, gt_mask)
         rec = {
@@ -195,6 +223,7 @@ def main():
             "iou": m["iou"],
             "precision": m["precision"],
             "recall": m["recall"],
+            "hd95": m["hd95"],
             "gt_area": int(gt_mask.sum()),
             "pred_area": int(pred_mask.sum()),
             "inference_time_sec": round(inf_time, 3),
@@ -223,6 +252,7 @@ def main():
     mean_iou  = float(np.mean([r["iou"] for r in results]))
     mean_prec = float(np.mean([r["precision"] for r in results]))
     mean_rec  = float(np.mean([r["recall"] for r in results]))
+    mean_hd95 = float(np.nanmean([r["hd95"] for r in results]))
 
     class_stats = {}
     for c in ["glioma", "meningioma", "pituitary"]:
@@ -234,6 +264,7 @@ def main():
                 "mean_iou": float(np.mean([r["iou"] for r in sub])),
                 "mean_precision": float(np.mean([r["precision"] for r in sub])),
                 "mean_recall": float(np.mean([r["recall"] for r in sub])),
+                "mean_hd95": float(np.nanmean([r["hd95"] for r in sub])),
             }
 
     view_stats = {}
@@ -245,10 +276,13 @@ def main():
                 "n_slices": len(sub),
                 "mean_dice": float(np.mean([r["dice"] for r in sub])),
                 "mean_iou": float(np.mean([r["iou"] for r in sub])),
+                "mean_hd95": float(np.nanmean([r["hd95"] for r in sub])),
             }
 
     summary = {
-        "model": "Zero-shot MedSAM (MobileSAM ViT-Tiny)",
+        "model": "Zero-shot MedSAM (medsam_vit_b.pth, ViT-B)",
+        "checkpoint": str(MEDSAM_CKPT.name),
+        "checkpoint_md5": "3bb6db55bd0c9ca30b61248bca72f8d6",
         "prompt": "Oracle Bounding Box (derived from GT mask)",
         "n_evaluated_slices": len(results),
         "total_eval_time_sec": round(total_time, 2),
@@ -257,6 +291,7 @@ def main():
         "mean_iou": mean_iou,
         "mean_precision": mean_prec,
         "mean_recall": mean_rec,
+        "mean_hd95": mean_hd95,
         "per_class": class_stats,
         "per_view": view_stats,
     }
@@ -273,19 +308,20 @@ def main():
     save_qualitative_grid(qual_samples, SEG_RESULTS / "medsam_qualitative_grid.png")
 
     print("\n" + "="*60)
-    print("  Zero-shot MedSAM (Oracle Box) Evaluation Results")
+    print("  Zero-shot MedSAM (medsam_vit_b.pth, Oracle Box) Results")
     print("="*60)
     print(f"  Slices Evaluated : {len(results)}")
     print(f"  Overall Mean Dice: {mean_dice*100:.2f}%")
     print(f"  Overall Mean IoU : {mean_iou*100:.2f}%")
     print(f"  Mean Precision   : {mean_prec*100:.2f}%")
     print(f"  Mean Recall      : {mean_rec*100:.2f}%")
+    print(f"  Mean HD95 (px)   : {mean_hd95:.2f}")
     print("\n  Per-class Breakdown:")
     for c, s in class_stats.items():
-        print(f"    {c.upper():<12}: Dice = {s['mean_dice']*100:.2f}% | IoU = {s['mean_iou']*100:.2f}% | Slices = {s['n_slices']}")
+        print(f"    {c.upper():<12}: Dice = {s['mean_dice']*100:.2f}% | IoU = {s['mean_iou']*100:.2f}% | HD95 = {s['mean_hd95']:.2f}px | Slices = {s['n_slices']}")
     print("\n  Per-view Plane Breakdown:")
     for v, s in view_stats.items():
-        print(f"    {v.upper():<12}: Dice = {s['mean_dice']*100:.2f}% | IoU = {s['mean_iou']*100:.2f}% | Slices = {s['n_slices']}")
+        print(f"    {v.upper():<12}: Dice = {s['mean_dice']*100:.2f}% | IoU = {s['mean_iou']*100:.2f}% | HD95 = {s['mean_hd95']:.2f}px | Slices = {s['n_slices']}")
     print("="*60 + "\n")
 
 

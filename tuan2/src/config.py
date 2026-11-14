@@ -3,15 +3,16 @@ Global configuration for BRISC 2025 experiments.
 Covers:
   1. ViT Baseline Classification  (Linear Probing & Full Fine-tuning)
   2. Zero-shot MedSAM segmentation (Oracle Box prompt)
-  3. SAM Everything Mode on 50 images
+  3. SAM Everything Mode on 50 images (25 BRISC 2025 + 25 Dataset 1 Navoneel)
 """
 
 import os
 from pathlib import Path
 
 # ─────────────────────────── Paths ───────────────────────────────────────────
-ARCHIVE_ROOT   = Path("E:/archive/brisc2025")
-DATASET1_ROOT  = Path("E:/archive/BrainTumorDetect/output")   # Dataset 1 samples
+PROJECT_ROOT   = Path(__file__).resolve().parents[2]
+ARCHIVE_ROOT   = PROJECT_ROOT / "dataset" / "brisc2025" / "brisc2025"
+DATASET1_ROOT  = PROJECT_ROOT / "dataset" / "navoneel"
 
 # Classification task
 CLS_TRAIN_DIR  = ARCHIVE_ROOT / "classification_task" / "train"
@@ -24,11 +25,11 @@ SEG_TEST_IMG   = ARCHIVE_ROOT / "segmentation_task" / "test"  / "images"
 SEG_TEST_MASK  = ARCHIVE_ROOT / "segmentation_task" / "test"  / "masks"
 
 # Output dirs
-RESULTS_ROOT   = Path("C:/Users/us/.gemini/antigravity/scratch/brisc2025_experiments/results")
+RESULTS_ROOT   = PROJECT_ROOT / "tuan2" / "results"
 CLS_RESULTS    = RESULTS_ROOT / "classification"
 SEG_RESULTS    = RESULTS_ROOT / "segmentation"
 SAM_RESULTS    = RESULTS_ROOT / "sam_everything"
-CKPT_DIR       = Path("C:/Users/us/.gemini/antigravity/scratch/brisc2025_experiments/checkpoints")
+CKPT_DIR       = PROJECT_ROOT / "checkpoints"
 
 for d in [CLS_RESULTS, SEG_RESULTS, SAM_RESULTS, CKPT_DIR]:
     d.mkdir(parents=True, exist_ok=True)

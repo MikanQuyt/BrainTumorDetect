@@ -83,9 +83,26 @@ def mask_to_bbox(mask_np: np.ndarray, padding: int = 0):
     return [x_min, y_min, x_max, y_max]
 
 
+def compute_hd95(pred_mask: np.ndarray, gt_mask: np.ndarray) -> float:
+    """Compute 95th-percentile symmetric Hausdorff distance (in pixels) between binary masks."""
+    from scipy import ndimage
+    p = np.asarray(pred_mask, dtype=bool)
+    g = np.asarray(gt_mask, dtype=bool)
+    if not p.any() and not g.any():
+        return 0.0
+    if not p.any() or not g.any():
+        return float("nan")
+    p_border = p ^ ndimage.binary_erosion(p)
+    g_border = g ^ ndimage.binary_erosion(g)
+    dt_p = ndimage.distance_transform_edt(~p_border)
+    dt_g = ndimage.distance_transform_edt(~g_border)
+    d = np.concatenate([dt_g[p_border], dt_p[g_border]])
+    return float(np.percentile(d, 95))
+
+
 def compute_seg_metrics(pred_mask: np.ndarray, gt_mask: np.ndarray):
     """
-    Compute Dice, IoU, Precision, Recall for binary masks.
+    Compute Dice, IoU, Precision, Recall, HD95 for binary masks.
     Both inputs: H×W bool/uint8.
     """
     pred = pred_mask.astype(bool).flatten()
@@ -100,7 +117,8 @@ def compute_seg_metrics(pred_mask: np.ndarray, gt_mask: np.ndarray):
     iou       = tp / (tp + fp + fn + 1e-8)
     precision = tp / (tp + fp + 1e-8)
     recall    = tp / (tp + fn + 1e-8)
-    return dict(dice=dice, iou=iou, precision=precision, recall=recall,
+    hd95      = compute_hd95(pred_mask, gt_mask)
+    return dict(dice=dice, iou=iou, precision=precision, recall=recall, hd95=hd95,
                 tp=tp, fp=fp, fn=fn, tn=tn)
 
 

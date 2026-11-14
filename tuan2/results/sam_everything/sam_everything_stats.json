@@ -1,26 +1,35 @@
 {
   "title": "SAM Everything Mode Mis-segmentation Proof",
+  "model": "Official SAM (sam_vit_b_01ec64.pth, ViT-B)",
+  "checkpoint_md5": "01ec64d29a2fca3f0661936605ae66f8",
   "total_images_tested": 50,
-  "total_time_sec": 853.66,
-  "avg_time_per_image_sec": 17.07,
+  "total_time_sec": 891.07,
+  "avg_time_per_image_sec": 17.82,
   "overall": {
-    "avg_masks_per_slice": 4.3,
-    "std_masks_per_slice": 2.05,
-    "avg_large_masks_per_slice": 3.0,
-    "avg_pct_large_masks": 76.75,
-    "avg_max_mask_coverage_pct": 50.28
+    "avg_masks_per_slice": 4.16,
+    "std_masks_per_slice": 2.55,
+    "avg_large_masks_per_slice": 1.74,
+    "avg_pct_large_masks": 54.52,
+    "avg_max_mask_coverage_pct": 50.29,
+    "max_single_mask_coverage_pct": 84.56,
+    "gt_subset_non_tumor_mask_pct": 89.77,
+    "gt_subset_mean_best_tumor_dice": 0.4361
   },
   "by_source": {
     "BRISC_2025": {
       "n": 25,
-      "avg_masks": 3.48,
-      "avg_pct_large": 78.15
+      "avg_masks": 5.08,
+      "avg_pct_large": 45.37,
+      "avg_max_coverage_pct": 49.14,
+      "max_coverage_pct": 84.56
     },
     "Dataset_1": {
       "n": 25,
-      "avg_masks": 5.12,
-      "avg_pct_large": 75.35
+      "avg_masks": 3.24,
+      "avg_pct_large": 63.67,
+      "avg_max_coverage_pct": 51.43,
+      "max_coverage_pct": 76.59
     }
   },
-  "scientific_conclusion": "Without medical-specific prompts, SAM Everything Mode generates an average of 4.3 masks per brain MRI scan across both BRISC 2025 and Dataset 1. Over 76.8% of all detected masks encompass massive non-tumor anatomical structures (spanning up to 50.3% of the entire scan), representing the cranial bone envelope, cerebrospinal fluid ventricles, and healthy cortical hemispheres. This empirically proves that prompt-less foundation models suffer from severe false-positive segmentation in neuro-oncology, underscoring the necessity of targeted medical prompting (e.g., Oracle Box in MedSAM)."
+  "scientific_conclusion": "Without medical-specific prompts, SAM Everything Mode (sam_vit_b_01ec64.pth) generates an average of 4.16 masks per brain MRI scan across 25 BRISC 2025 and 25 Dataset 1 (Navoneel) scans. 54.52% of all detected masks encompass massive non-tumor anatomical structures (largest mask spanning an average of 50.29% and up to 84.6% of the entire scan), capturing the cranial bone ring, meninges, ventricles, and healthy cerebral hemispheres. On the 18 tumor slices with pixel-level ground truth, 89.77% of generated masks lie predominantly outside the tumor on skull/normal parenchyma. This empirically confirms that a prior ViT localization branch is mandatory before invoking SAM/MedSAM."
 }

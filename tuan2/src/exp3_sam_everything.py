@@ -1,10 +1,11 @@
 """
 Experiment 3: SAM Everything Mode (Prompt-less Automatic Mask Generation)
-  - Evaluates SAM Everything Mode on 50 images:
-      * 25 images from BRISC 2025
-      * 25 images from Dataset 1 (BrainTumorDetect)
+  - Evaluates SAM Everything Mode (sam_vit_b_01ec64.pth, ViT-B) on 50 genuine images:
+      * 25 images from BRISC 2025 (Dataset 3: 6 glioma, 6 meningioma, 6 pituitary, 7 no_tumor)
+      * 25 images from Dataset 1 (Navoneel: 13 tumor 'yes' + 12 non-tumor 'no')
   - Proves that prompt-less SAM erroneously segments normal anatomical structures,
-    including the outer skull bone ring and healthy brain tissue.
+    including the outer skull bone ring and healthy brain parenchyma, and fails to
+    isolate tumors without a prior localization prompt (ViT bounding box).
 
 Outputs (in results/sam_everything/):
   - sam_everything_stats.json
@@ -16,7 +17,6 @@ Outputs (in results/sam_everything/):
 import sys
 import logging
 import time
-import random
 from pathlib import Path
 
 import numpy as np
@@ -24,90 +24,116 @@ from PIL import Image
 
 sys.path.insert(0, str(Path(__file__).parent))
 from config import *
-from utils import seed_everything, get_device, save_json, save_csv, timestamp
+from utils import seed_everything, get_device, load_binary_mask, compute_seg_metrics, save_json, save_csv
 
 log = logging.getLogger("sam_everything")
 
 import torch
-import cv2
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-import matplotlib.cm as cm
 
-from mobile_sam.build_sam import build_sam_vit_t
-from segment_anything import SamAutomaticMaskGenerator
+from segment_anything import sam_model_registry, SamAutomaticMaskGenerator
 
 
 def load_sam_amg(device):
-    ckpt_path = CKPT_DIR / "mobile_sam.pt"
-    log.info(f"Loading SAM model for Everything Mode from {ckpt_path}...")
-    sam = build_sam_vit_t(str(ckpt_path)).to(device)
-    sam.eval()
+    ckpt_path = SAM_VIT_B_CKPT
+    if not ckpt_path.exists():
+        raise FileNotFoundError(f"Missing SAM checkpoint at {ckpt_path}")
+    log.info(f"Loading official SAM (sam_vit_b_01ec64.pth, ViT-B) for Everything Mode from {ckpt_path}...")
+    sam = sam_model_registry["vit_b"](checkpoint=None)
+    state_dict = torch.load(ckpt_path, map_location="cpu", weights_only=True)
+    sam.load_state_dict(state_dict)
+    sam = sam.to(device).eval()
     amg = SamAutomaticMaskGenerator(
         sam,
-        points_per_side=4,         # 4x4 = 16 prompt points across image (fast & covers skull/cortex/ventricles)
-        points_per_batch=16,
-        crop_n_layers=0,           # Full-image level to avoid repetitive sub-crops on CPU
+        points_per_side=8,          # 8x8 = 64 uniform grid points (no localization prompt)
+        points_per_batch=32,
+        crop_n_layers=0,
         pred_iou_thresh=0.86,
         stability_score_thresh=0.90,
-        min_mask_region_area=0,    # Avoid heavy OpenCV morphological postprocessing on CPU
+        min_mask_region_area=0,
     )
     return amg
 
 
 def collect_50_images():
     """
-    Select 25 images from BRISC 2025 (test set) + 25 images from Dataset 1.
+    Select 25 genuine images from BRISC 2025 (test set) + 25 genuine images from Dataset 1 (Navoneel).
     """
     seed_everything(SEED)
     images_50 = []
 
-    # 1. BRISC 2025: 25 images (6 glioma, 6 meningioma, 6 pituitary, 7 no_tumor)
-    class_targets = {"glioma": 6, "meningioma": 6, "pituitary": 6, "no_tumor": 7}
-    for cls, count in class_targets.items():
-        cls_dir = CLS_TEST_DIR / cls
-        files = sorted(cls_dir.glob("*.jpg"))
+    # 1. BRISC 2025: 25 images (6 glioma, 6 meningioma, 6 pituitary from seg test with GT masks + 7 no_tumor from cls test)
+    seg_test_imgs = sorted(SEG_TEST_IMG.glob("*.jpg"))
+    by_cls = {"glioma": [], "meningioma": [], "pituitary": []}
+    t_map = {"gl": "glioma", "me": "meningioma", "pi": "pituitary"}
+    for p in seg_test_imgs:
+        parts = p.stem.split("_")
+        c = t_map.get(parts[3] if len(parts) > 3 else "", "")
+        if c in by_cls:
+            by_cls[c].append(p)
+
+    for cls, count in [("glioma", 6), ("meningioma", 6), ("pituitary", 6)]:
+        files = by_cls[cls]
         step = max(1, len(files) // count)
-        chosen = files[::step][:count]
-        for f in chosen:
+        for f in files[::step][:count]:
+            mask_p = SEG_TEST_MASK / (f.stem + ".png")
             images_50.append({
                 "path": f,
+                "mask_path": mask_p if mask_p.exists() else None,
                 "source": "BRISC 2025 (Dataset 3)",
                 "class": cls,
                 "is_dataset1": False,
             })
 
-    # 2. Dataset 1: 25 images
-    # BrainTumorDetect has output samples + processed images
-    ds1_samples_dir = DATASET1_ROOT / "samples"
-    ds1_files = sorted(ds1_samples_dir.glob("*.jpg")) if ds1_samples_dir.exists() else []
-
-    for f in ds1_files:
-        name = f.stem.lower()
-        cls = "glioma" if "glioma" in name else ("meningioma" if "meningioma" in name else "pituitary")
+    no_files = sorted((CLS_TEST_DIR / "no_tumor").glob("*.jpg"))
+    step = max(1, len(no_files) // 7)
+    for f in no_files[::step][:7]:
         images_50.append({
             "path": f,
-            "source": "Dataset 1 (BrainTumorDetect)",
-            "class": cls,
+            "mask_path": None,
+            "source": "BRISC 2025 (Dataset 3)",
+            "class": "no_tumor",
+            "is_dataset1": False,
+        })
+
+    # 2. Dataset 1 (Navoneel): 25 genuine images (13 tumor from yes/ + 12 no_tumor from no/)
+    ds1_yes_dir = DATASET1_ROOT / "yes"
+    ds1_no_dir  = DATASET1_ROOT / "no"
+    if not ds1_yes_dir.exists():
+        ds1_yes_dir = DATASET1_ROOT / "brain_tumor_dataset" / "yes"
+        ds1_no_dir  = DATASET1_ROOT / "brain_tumor_dataset" / "no"
+
+    yes_files = sorted([p for p in ds1_yes_dir.iterdir() if p.is_file()])
+    no_ds1_files = sorted([p for p in ds1_no_dir.iterdir() if p.is_file()])
+
+    step_y = max(1, len(yes_files) // 13)
+    for f in yes_files[::step_y][:13]:
+        images_50.append({
+            "path": f,
+            "mask_path": None,
+            "source": "Dataset 1 (Navoneel)",
+            "class": "tumor",
             "is_dataset1": True,
         })
 
-    # Fill remaining from classification train set as cross-source validation
-    remaining = 50 - len(images_50)
-    if remaining > 0:
-        extra_files = sorted((CLS_TRAIN_DIR / "glioma").glob("*.jpg")) + sorted((CLS_TRAIN_DIR / "meningioma").glob("*.jpg"))
-        step = max(1, len(extra_files) // remaining)
-        for f in extra_files[::step][:remaining]:
-            images_50.append({
-                "path": f,
-                "source": "Dataset 1 (Benchmark Slice)",
-                "class": "glioma" if "gl" in f.stem else "meningioma",
-                "is_dataset1": True,
-            })
+    step_n = max(1, len(no_ds1_files) // 12)
+    for f in no_ds1_files[::step_n][:12]:
+        images_50.append({
+            "path": f,
+            "mask_path": None,
+            "source": "Dataset 1 (Navoneel)",
+            "class": "no_tumor",
+            "is_dataset1": True,
+        })
 
-    images_50 = images_50[:50]
-    log.info(f"Collected {len(images_50)} images: {sum(1 for x in images_50 if not x['is_dataset1'])} BRISC 2025, {sum(1 for x in images_50 if x['is_dataset1'])} Dataset 1.")
+    assert len(images_50) == 50, f"Expected 50 images, got {len(images_50)}"
+    log.info(
+        f"Collected {len(images_50)} genuine images: "
+        f"{sum(1 for x in images_50 if not x['is_dataset1'])} BRISC 2025 + "
+        f"{sum(1 for x in images_50 if x['is_dataset1'])} Dataset 1 (Navoneel)."
+    )
     return images_50
 
 
@@ -124,7 +150,6 @@ def visualize_sam_everything(img_np, masks, info, idx, out_path):
     axes[1].imshow(img_np)
     total_area = img_np.shape[0] * img_np.shape[1]
 
-    # Classify masks: large (>5% area = skull / normal brain matter) vs small (<5%)
     n_large = 0
     if masks:
         sorted_masks = sorted(masks, key=lambda x: x["area"], reverse=True)
@@ -162,9 +187,9 @@ def save_summary_figure(stats: list, out_path: Path):
     brisc_masks = [s["num_masks"] for s in stats if "BRISC" in s["source"]]
     ds1_masks   = [s["num_masks"] for s in stats if "Dataset 1" in s["source"]]
     try:
-        ax.boxplot([brisc_masks, ds1_masks], tick_labels=["BRISC 2025", "Dataset 1"], patch_artist=True)
+        ax.boxplot([brisc_masks, ds1_masks], tick_labels=["BRISC 2025 (n=25)", "Dataset 1 Navoneel (n=25)"], patch_artist=True)
     except TypeError:
-        ax.boxplot([brisc_masks, ds1_masks], labels=["BRISC 2025", "Dataset 1"], patch_artist=True)
+        ax.boxplot([brisc_masks, ds1_masks], labels=["BRISC 2025 (n=25)", "Dataset 1 Navoneel (n=25)"], patch_artist=True)
     ax.set_title("Total Auto-generated Masks per Slice", fontsize=11, fontweight="bold")
     ax.set_ylabel("Number of Masks")
     ax.grid(True, alpha=0.3)
@@ -195,15 +220,16 @@ def save_summary_figure(stats: list, out_path: Path):
     ax.legend()
     ax.grid(True, alpha=0.3)
 
-    # 4. Number of masks by tumor class
+    # 4. Number of masks by diagnostic group
     ax = axes[1, 1]
-    classes = ["glioma", "meningioma", "pituitary", "no_tumor"]
+    classes = ["glioma", "meningioma", "pituitary", "tumor", "no_tumor"]
+    cls_labels = ["GLIOMA\n(DS3)", "MENING.\n(DS3)", "PITUIT.\n(DS3)", "TUMOR\n(DS1)", "NO TUMOR\n(DS3+DS1)"]
     cls_means = []
     for c in classes:
         sub = [s["num_masks"] for s in stats if s["class"] == c]
         cls_means.append(np.mean(sub) if sub else 0)
-    bars = ax.bar([c.upper() for c in classes], cls_means, color=["#4e79a7", "#f28e2c", "#e15759", "#76b7b2"])
-    ax.set_title("Average Mask Count by Diagnostic Class\n[High in Both Tumor and No-Tumor]",
+    bars = ax.bar(cls_labels, cls_means, color=["#4e79a7", "#f28e2c", "#e15759", "#9c755f", "#76b7b2"])
+    ax.set_title("Average Mask Count by Diagnostic Group\n[High in Both Tumor and No-Tumor]",
                  fontsize=11, fontweight="bold")
     ax.set_ylabel("Avg Masks / Slice")
     ax.grid(True, alpha=0.3, axis="y")
@@ -211,7 +237,7 @@ def save_summary_figure(stats: list, out_path: Path):
         yval = bar.get_height()
         ax.text(bar.get_x() + bar.get_width()/2.0, yval + 0.1, f"{yval:.1f}", ha="center", va="bottom", fontweight="bold")
 
-    fig.suptitle("SAM Everything Mode (Prompt-less) Experimental Proof\n"
+    fig.suptitle("SAM Everything Mode (sam_vit_b_01ec64.pth) Experimental Proof\n"
                  "Demonstrating Systematic Mis-segmentation of Cranial Bones and Healthy Tissues",
                  fontsize=13, fontweight="bold")
     plt.tight_layout()
@@ -231,12 +257,11 @@ def main():
     stats = []
     t0 = time.time()
 
-    log.info(f"\n{'='*60}\n Running SAM Everything Mode on 50 MRI Images\n{'='*60}")
+    log.info(f"\n{'='*60}\n Running Official SAM Everything Mode on 50 MRI Images\n{'='*60}")
 
     for idx, info in enumerate(images_50, 1):
         img_p = info["path"]
         pil_img = Image.open(img_p).convert("RGB")
-        # Resize to 256x256 for rapid prompt-less point grid inference
         pil_img_resized = pil_img.resize((256, 256), Image.BILINEAR)
         img_np = np.array(pil_img_resized)
 
@@ -253,6 +278,26 @@ def main():
         pct_large = n_large / n_masks if n_masks > 0 else 0.0
         max_area_ratio = max(areas) / float(total_pixels) if areas else 0.0
 
+        # If GT tumor mask exists (18 BRISC 2025 tumor slices), measure non-tumor mask ratio & best-mask tumor Dice
+        non_tumor_masks = None
+        best_tumor_dice = None
+        if info["mask_path"] is not None and info["mask_path"].exists():
+            gt_pil = Image.open(info["mask_path"]).convert("L").resize((256, 256), Image.NEAREST)
+            gt_bool = np.array(gt_pil) > 127
+            if gt_bool.any() and masks:
+                dices = []
+                n_non_tumor = 0
+                for m in masks:
+                    seg = m["segmentation"].astype(bool)
+                    inter = np.logical_and(seg, gt_bool).sum()
+                    dice_m = (2.0 * inter) / (seg.sum() + gt_bool.sum() + 1e-8)
+                    dices.append(dice_m)
+                    # A mask is a false-positive anatomical mask if >50% of its area lies outside the tumor
+                    if (seg & (~gt_bool)).sum() > 0.5 * max(seg.sum(), 1):
+                        n_non_tumor += 1
+                best_tumor_dice = round(float(max(dices)), 4)
+                non_tumor_masks = n_non_tumor
+
         stat_record = {
             "index": idx,
             "filename": img_p.name,
@@ -263,27 +308,42 @@ def main():
             "pct_large_masks": round(pct_large, 4),
             "max_mask_area_ratio": round(max_area_ratio, 4),
             "avg_mask_area_pixels": round(float(np.mean(areas)), 1),
+            "non_tumor_masks": non_tumor_masks if non_tumor_masks is not None else "",
+            "best_tumor_dice": best_tumor_dice if best_tumor_dice is not None else "",
             "inference_time_sec": round(dt, 2),
         }
         stats.append(stat_record)
 
-        log.info(f"[{idx:02d}/50] {img_p.name:<35} | Masks: {n_masks:2d} | Large (Skull/Tissue): {n_large:2d} | Max Cov: {max_area_ratio*100:4.1f}% | Time: {dt:4.1f}s")
+        log.info(
+            f"[{idx:02d}/50] {img_p.name:<35} | Masks: {n_masks:2d} | "
+            f"Large (>5%): {n_large:2d} | Max Cov: {max_area_ratio*100:4.1f}% | Time: {dt:4.1f}s"
+        )
         sys.stdout.flush()
 
-        # Save individual overlay visualization
         out_overlay = SAM_RESULTS / f"sam_everything_overlay_{idx:02d}.png"
         visualize_sam_everything(img_np, masks, info, idx, out_overlay)
 
     total_time = time.time() - t0
 
-    # Aggregate Statistics
     all_masks_count = [s["num_masks"] for s in stats]
     all_large_count = [s["num_large_masks"] for s in stats]
     all_large_pct   = [s["pct_large_masks"] * 100 for s in stats]
     all_max_cov     = [s["max_mask_area_ratio"] * 100 for s in stats]
 
+    gt_eval_rows = [s for s in stats if s["best_tumor_dice"] != ""]
+    mean_best_tumor_dice = round(float(np.mean([s["best_tumor_dice"] for s in gt_eval_rows])), 4) if gt_eval_rows else None
+    pct_non_tumor_masks = round(
+        float(sum(s["non_tumor_masks"] for s in gt_eval_rows) / max(sum(s["num_masks"] for s in gt_eval_rows), 1) * 100),
+        2,
+    ) if gt_eval_rows else None
+
+    brisc_sub = [s for s in stats if "BRISC" in s["source"]]
+    ds1_sub   = [s for s in stats if "Dataset 1" in s["source"]]
+
     summary = {
         "title": "SAM Everything Mode Mis-segmentation Proof",
+        "model": "Official SAM (sam_vit_b_01ec64.pth, ViT-B)",
+        "checkpoint_md5": "01ec64d29a2fca3f0661936605ae66f8",
         "total_images_tested": len(stats),
         "total_time_sec": round(total_time, 2),
         "avg_time_per_image_sec": round(total_time / len(stats), 2),
@@ -293,27 +353,35 @@ def main():
             "avg_large_masks_per_slice": round(float(np.mean(all_large_count)), 2),
             "avg_pct_large_masks": round(float(np.mean(all_large_pct)), 2),
             "avg_max_mask_coverage_pct": round(float(np.mean(all_max_cov)), 2),
+            "max_single_mask_coverage_pct": round(float(np.max(all_max_cov)), 2),
+            "gt_subset_non_tumor_mask_pct": pct_non_tumor_masks,
+            "gt_subset_mean_best_tumor_dice": mean_best_tumor_dice,
         },
         "by_source": {
             "BRISC_2025": {
-                "n": 25,
-                "avg_masks": round(float(np.mean([s["num_masks"] for s in stats if "BRISC" in s["source"]])), 2),
-                "avg_pct_large": round(float(np.mean([s["pct_large_masks"]*100 for s in stats if "BRISC" in s["source"]])), 2),
+                "n": len(brisc_sub),
+                "avg_masks": round(float(np.mean([s["num_masks"] for s in brisc_sub])), 2),
+                "avg_pct_large": round(float(np.mean([s["pct_large_masks"]*100 for s in brisc_sub])), 2),
+                "avg_max_coverage_pct": round(float(np.mean([s["max_mask_area_ratio"]*100 for s in brisc_sub])), 2),
+                "max_coverage_pct": round(float(np.max([s["max_mask_area_ratio"]*100 for s in brisc_sub])), 2),
             },
             "Dataset_1": {
-                "n": 25,
-                "avg_masks": round(float(np.mean([s["num_masks"] for s in stats if "Dataset 1" in s["source"]])), 2),
-                "avg_pct_large": round(float(np.mean([s["pct_large_masks"]*100 for s in stats if "Dataset 1" in s["source"]])), 2),
+                "n": len(ds1_sub),
+                "avg_masks": round(float(np.mean([s["num_masks"] for s in ds1_sub])), 2),
+                "avg_pct_large": round(float(np.mean([s["pct_large_masks"]*100 for s in ds1_sub])), 2),
+                "avg_max_coverage_pct": round(float(np.mean([s["max_mask_area_ratio"]*100 for s in ds1_sub])), 2),
+                "max_coverage_pct": round(float(np.max([s["max_mask_area_ratio"]*100 for s in ds1_sub])), 2),
             }
         },
         "scientific_conclusion": (
-            "Without medical-specific prompts, SAM Everything Mode generates an average of "
-            f"{np.mean(all_masks_count):.1f} masks per brain MRI scan across both BRISC 2025 and Dataset 1. "
-            f"Over {np.mean(all_large_pct):.1f}% of all detected masks encompass massive non-tumor anatomical structures "
-            f"(spanning up to {np.mean(all_max_cov):.1f}% of the entire scan), representing the cranial bone envelope, "
-            "cerebrospinal fluid ventricles, and healthy cortical hemispheres. This empirically proves that "
-            "prompt-less foundation models suffer from severe false-positive segmentation in neuro-oncology, "
-            "underscoring the necessity of targeted medical prompting (e.g., Oracle Box in MedSAM)."
+            "Without medical-specific prompts, SAM Everything Mode (sam_vit_b_01ec64.pth) generates an average of "
+            f"{np.mean(all_masks_count):.2f} masks per brain MRI scan across 25 BRISC 2025 and 25 Dataset 1 (Navoneel) scans. "
+            f"{np.mean(all_large_pct):.2f}% of all detected masks encompass massive non-tumor anatomical structures "
+            f"(largest mask spanning an average of {np.mean(all_max_cov):.2f}% and up to {np.max(all_max_cov):.1f}% of the entire scan), "
+            "capturing the cranial bone ring, meninges, ventricles, and healthy cerebral hemispheres. "
+            f"On the 18 tumor slices with pixel-level ground truth, {pct_non_tumor_masks}% of generated masks lie predominantly "
+            "outside the tumor on skull/normal parenchyma. This empirically confirms that a prior ViT localization branch "
+            "is mandatory before invoking SAM/MedSAM."
         )
     }
 
@@ -324,13 +392,12 @@ def main():
     print("\n" + "="*60)
     print("  SAM Everything Mode -- Empirical Proof Results")
     print("="*60)
-    print(f"  Images Tested       : {len(stats)} (25 BRISC 2025 + 25 Dataset 1)")
-    print(f"  Avg Masks / Image   : {summary['overall']['avg_masks_per_slice']:.1f} +/- {summary['overall']['std_masks_per_slice']:.1f}")
-    print(f"  Avg Large Masks / Img: {summary['overall']['avg_large_masks_per_slice']:.1f} (Skull & Normal Parenchyma)")
-    print(f"  Avg % Large Masks   : {summary['overall']['avg_pct_large_masks']:.1f}%")
-    print(f"  Max Mask Coverage   : {summary['overall']['avg_max_mask_coverage_pct']:.1f}% of entire image area")
-    print("\n  Scientific Conclusion:")
-    print(f"  {summary['scientific_conclusion']}")
+    print(f"  Images Tested       : {len(stats)} (25 BRISC 2025 + 25 Dataset 1 Navoneel)")
+    print(f"  Avg Masks / Image   : {summary['overall']['avg_masks_per_slice']:.2f} +/- {summary['overall']['std_masks_per_slice']:.2f}")
+    print(f"  Avg Large Masks / Img: {summary['overall']['avg_large_masks_per_slice']:.2f} (Skull & Normal Parenchyma)")
+    print(f"  Avg % Large Masks   : {summary['overall']['avg_pct_large_masks']:.2f}%")
+    print(f"  Avg Max Coverage    : {summary['overall']['avg_max_mask_coverage_pct']:.2f}% (Max: {summary['overall']['max_single_mask_coverage_pct']:.1f}%)")
+    print(f"  Non-tumor Masks (GT): {pct_non_tumor_masks}% | Mean Best-Mask Dice: {mean_best_tumor_dice}")
     print("="*60 + "\n")
 
 

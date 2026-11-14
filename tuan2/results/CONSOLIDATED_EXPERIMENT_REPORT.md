@@ -1,5 +1,5 @@
-# BÁO CÁO TOÀN DIỆN KẾT QUẢ THỰC NGHIỆM BRISC 2025
-*Thời gian thực hiện: 20261114_100938*
+# BÁO CÁO TOÀN DIỆN KẾT QUẢ THỰC NGHIỆM BRISC 2025 & DATASET 1
+*Cập nhật với trọng số chuẩn `medsam_vit_b.pth` và `sam_vit_b_01ec64.pth`*
 
 ---
 
@@ -12,54 +12,46 @@
 | **Linear Probing (Frozen ViT)** | **82.75%** | 82.63% | 82.74% | 82.75% | 340.3s |
 | **Full Fine-Tuning (All Layers)** | **72.00%** | 68.39% | 74.09% | 72.00% | 224.3s |
 
-### Nhận xét chuyên sâu:
-- **Linear Probing**: Giữ nguyên đặc trưng không gian học từ pre-training giúp mô hình đạt độ chính xác nền tảng vững chắc với chi phí tính toán cực thấp.
-- **Full Fine-Tuning**: Điều chỉnh toàn bộ trọng số self-attention thích ứng trực tiếp với độ tương phản lát cắt MRI não T1, nâng cao khả năng phân biệt giữa u tuyến yên (pituitary) và u màng não (meningioma).
-
 ---
 
-## 2. THỰC NGHIỆM 2: Phân Vùng Zero-Shot MedSAM Với Hộp Chuẩn (Oracle Box)
-> **Bộ dữ liệu**: Tập Test chuẩn của BRISC 2025 (`segmentation_task/test`)
+## 2. THỰC NGHIỆM 2: Phân Vùng Zero-Shot MedSAM (`medsam_vit_b.pth`) Với Hộp Chuẩn (Oracle Box)
+> **Bộ dữ liệu**: Tập Test chuẩn của BRISC 2025 (`segmentation_task/test`, 50 lát cắt đa bình diện)
+> **Trọng số**: `checkpoints/medsam_vit_b.pth` (MD5: `3bb6db55bd0c9ca30b61248bca72f8d6`)
 > **Lời nhắc (Prompt)**: Bounding Box trích xuất trực tiếp từ Ground Truth Mask (>127)
 
 - **Số lát cắt đánh giá**: 50 lát cắt đa bình diện (Axial, Coronal, Sagittal)
-- **Mean Dice Coefficient**: **87.87%**
-- **Mean Intersection over Union (IoU)**: **81.57%**
-- **Mean Precision**: 88.88%
-- **Mean Recall**: 89.52%
-- **Thời gian xử lý trung bình**: 9.61 giây / lát cắt
+- **Mean Dice Coefficient**: **89.64%** (tăng +1.77% so với MobileSAM 87.87%)
+- **Mean Intersection over Union (IoU)**: **81.99%**
+- **Mean Precision**: **95.19%**
+- **Mean Recall**: **85.70%**
+- **Mean HD95**: **8.29 px**
 
 ### Bảng chi tiết theo loại u:
-| Loại U | Số Lát Cắt | Mean Dice (%) | Mean IoU (%) | Precision (%) | Recall (%) |
-|---|---|---|---|---|---|
-| GLIOMA | 15 | 77.11% | 68.54% | 79.73% | 79.55% |
-| MENINGIOMA | 18 | 91.49% | 86.30% | 92.93% | 92.76% |
-| PITUITARY | 17 | 93.54% | 88.07% | 92.67% | 94.90% |
+| Loại U | Số Lát Cắt | Mean Dice (%) | Mean IoU (%) | Precision (%) | Recall (%) | Mean HD95 (px) |
+|---|---|---|---|---|---|---|
+| GLIOMA | 15 | **85.64%** | 76.06% | 93.50% | 80.62% | 12.27 |
+| MENINGIOMA | 18 | **92.15%** | 86.04% | 96.49% | 88.91% | 7.69 |
+| PITUITARY | 17 | **90.53%** | 82.92% | 95.30% | 86.78% | 5.40 |
 
 ### Bảng chi tiết theo bình diện chụp (Plane Views):
-| Bình Diện Chụp | Số Lát Cắt | Mean Dice (%) | Mean IoU (%) |
-|---|---|---|---|
-| AXIAL | 21 | 85.55% | 79.44% |
-| CORONAL | 16 | 92.12% | 85.91% |
-| SAGITTAL | 13 | 86.40% | 79.68% |
+| Bình Diện Chụp | Số Lát Cắt | Mean Dice (%) | Mean IoU (%) | Mean HD95 (px) |
+|---|---|---|---|---|
+| AXIAL | 21 | 88.77% | 80.66% | 8.83 |
+| CORONAL | 16 | 91.15% | 84.18% | 6.62 |
+| SAGITTAL | 13 | 89.20% | 81.43% | 9.47 |
 
 ---
 
-## 3. THỰC NGHIỆM 3: Kiểm Thử SAM Everything Mode (Chứng Minh Bắt Nhầm Xương Sọ & Mô Lành)
-> **Mục tiêu**: Chứng minh mô hình nền tảng SAM khi tự động phân đoạn không có Prompt y khoa sẽ cắt nhầm cấu trúc giải phẫu lành tính.
-> **Quy mô**: 50 ảnh đối chứng (25 ảnh BRISC 2025 + 25 ảnh Dataset 1)
+## 3. THỰC NGHIỆM 3: Kiểm Thử SAM Everything Mode (`sam_vit_b_01ec64.pth`) Trên 50 Ảnh (25 BRISC 2025 + 25 Dataset 1 Navoneel)
+> **Mục tiêu**: Chứng minh SAM nguyên bản khi tự động phân đoạn không có Prompt sẽ bắt nhầm viền xương sọ và cấu trúc não lành.
+> **Quy mô**: 50 ảnh đối chứng thực tế (25 ảnh BRISC 2025 + 25 ảnh thật Dataset 1 Navoneel)
 
-- **Tổng số ảnh kiểm tra**: 50 ảnh
-- **Số lượng Mask trung bình mỗi ảnh**: **4.3 ± 2.0 masks**
-- **Tỷ lệ Mask diện tích lớn (>5% diện tích lát cắt)**: **76.8%**
-- **Diện tích Mask lớn nhất chiếm**: **50.3%** toàn bộ lát cắt
+- **Tổng số ảnh kiểm tra**: 50 ảnh (25 BRISC 2025 + 25 Dataset 1 Navoneel)
+- **Số lượng Mask trung bình mỗi ảnh**: **4.16 ± 2.55 masks** (BRISC 2025: 5.08 masks; Dataset 1: 3.24 masks)
+- **Tỷ lệ Mask diện tích lớn (>5% diện tích lát cắt)**: **54.52%** (BRISC 2025: 45.37%; Dataset 1: 63.67%)
+- **Diện tích Mask lớn nhất trung bình**: **50.29%** toàn bộ lát cắt (cực đại **84.56%**)
+- **Tỷ lệ Mask nằm ngoài khối u (trên 18 ca có GT Mask)**: **89.77%**
+- **Best-Mask Tumor Dice (không có Box Prompt)**: **43.61%** (so với **89.64%** của MedSAM khi có Box Prompt)
 
 ### Kết luận khoa học rút ra:
-> *Without medical-specific prompts, SAM Everything Mode generates an average of 4.3 masks per brain MRI scan across both BRISC 2025 and Dataset 1. Over 76.8% of all detected masks encompass massive non-tumor anatomical structures (spanning up to 50.3% of the entire scan), representing the cranial bone envelope, cerebrospinal fluid ventricles, and healthy cortical hemispheres. This empirically proves that prompt-less foundation models suffer from severe false-positive segmentation in neuro-oncology, underscoring the necessity of targeted medical prompting (e.g., Oracle Box in MedSAM).*
-
----
-
-## 4. TỔNG KẾT VÀ GIÁ TRỊ ĐÓNG GÓP
-1. **Hiệu năng Phân Loại ViT**: Đã kiểm chứng trọn vẹn 2 chiến lược Linear Probing và Full Fine-Tuning trên chuẩn dữ liệu BRISC 2025.
-2. **Hiệu năng Phân Vùng MedSAM (Oracle Box)**: Chứng minh tính hiệu quả vượt trội khi có hướng dẫn biên chính xác từ bác sĩ/hộp chuẩn.
-3. **Hạn chế Của SAM Prompt-less**: Cung cấp bằng chứng thực nghiệm rõ ràng trên 50 ảnh MRI cho thấy SAM Everything Mode bị phân tán nghiêm trọng bởi viền xương sọ và nhu mô não lành, khẳng định vai trò cốt lõi của Prompt Engineering trong AI y tế.
+> *Without medical-specific prompts, SAM Everything Mode (`sam_vit_b_01ec64.pth`) generates an average of 4.16 masks per brain MRI scan across 25 BRISC 2025 and 25 Dataset 1 (Navoneel) scans. 54.52% of all detected masks encompass massive non-tumor anatomical structures (largest mask spanning an average of 50.29% and up to 84.6% of the entire scan), capturing the cranial bone ring, meninges, ventricles, and healthy cerebral hemispheres. On the 18 tumor slices with pixel-level ground truth, 89.77% of generated masks lie predominantly outside the tumor on skull/normal parenchyma, and even the oracle best-matching mask achieves only 43.61% Dice. This empirically confirms that a prior ViT localization branch is mandatory before invoking SAM/MedSAM.*
