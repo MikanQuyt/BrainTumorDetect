@@ -14,7 +14,7 @@ import logging
 import argparse
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent / "src"))
+sys.path.insert(0, str(Path(__file__).parent))
 from config import RESULTS_ROOT, CLS_RESULTS, SEG_RESULTS, SAM_RESULTS
 from utils import save_json, timestamp
 

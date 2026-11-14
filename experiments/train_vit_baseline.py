@@ -15,14 +15,14 @@ import numpy as np
 import sklearn
 import timm
 import torch
-from sklearn.metrics import confusion_matrix, precision_recall_fscore_support
+from sklearn.metrics import confusion_matrix, precision_recall_fscore_support, roc_auc_score
 from torch import nn
 from torch.utils.data import DataLoader, Subset, TensorDataset
 
 from experiments.vit_data import collect_samples, make_splits, prepare_images
 
 MODEL = "vit_tiny_patch16_224.augreg_in21k_ft_in1k"
-SCALARS = ("accuracy", "precision", "recall", "f1", "tumor_recall")
+SCALARS = ("accuracy", "precision", "recall", "f1", "auc", "tumor_recall")
 
 
 def save_json(path, data):
@@ -97,11 +97,16 @@ def classification_metrics(target, probabilities, classes):
     precision, recall, f1, _ = precision_recall_fscore_support(
         target, prediction, labels=class_ids, average=average, zero_division=0,
     )
+    if len(classes) == 2:
+        auc = float(roc_auc_score(target, probabilities[:, 1]))
+    else:
+        auc = float(roc_auc_score(target, probabilities, multi_class="ovr", average="macro"))
     return {
         "accuracy": float((target == prediction).mean()),
         "precision": float(precision),
         "recall": float(recall),
         "f1": float(f1),
+        "auc": auc,
         "tumor_recall": float(((target > 0) & (prediction > 0)).sum() / (target > 0).sum()),
         "class_recall": dict(zip(classes, (matrix.diagonal() / matrix.sum(axis=1)).tolist())),
         "confusion_matrix": matrix.tolist(),

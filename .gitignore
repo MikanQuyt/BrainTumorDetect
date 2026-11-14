@@ -21,6 +21,8 @@ __pycache__/
 .DS_Store
 Thumbs.db
 chinhsua*.md
+check*.md
+Nguyen_Phuoc_Hoang_Quan_tuan*/
 reports/week2/**/pred/
 reports/week2/_dry/
 reports/week2/_trial/

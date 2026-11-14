@@ -18,7 +18,7 @@ Tác giả: Lâm Gia Bảo. Nhánh: `Lam_Gia_Bao_tuan2`.
 | MedSAM | Quy trình suy luận chính thức: resize 1024×1024, chuẩn hóa min-max về [0,1], hộp quy đổi sang hệ 1024, ngưỡng sigmoid 0,5 |
 | Đối chứng | **Box-fill**: tô kín cả hộp chuẩn làm mask dự đoán |
 | DS4 (BraTS2020) | Tập `val`, chỉ các lát có u (`gt_box` khác rỗng): **3.313 lát, 55 ca**. Ảnh PNG 3 kênh `[FLAIR, T1ce, T2]` (Z-score, cắt ở ±3σ, quy về 8-bit) |
-| DS2 (indk214) | **Toàn bộ 2.192 cặp ảnh – mask phân vùng** (sau cắt sọ + CLAHE). Cột `split` của `ds2_annotations.json` hiện đang rỗng nên chưa có tập Validation định nghĩa sẵn; do thí nghiệm là zero-shot (mô hình không được huấn luyện trên DS2) nên đánh giá trên toàn bộ tập không gây rò rỉ dữ liệu |
+| DS2 (indk214) | Đánh giá trên cả **Tập Validation chuẩn hóa (329 ảnh, chia Stratified 70/15/15 từ 2.192 cặp ảnh–mask theo lớp u tại `ds2/ds2_split.csv`)** lẫn **Toàn bộ 2.192 cặp ảnh – mask phân vùng** (sau cắt sọ + CLAHE) |
 | Chỉ số | Dice và IoU, tính ở độ phân giải của ảnh đã lưu |
 | Thống kê | Chênh lệch ghép cặp (MedSAM − SAM) theo từng ảnh; khoảng tin cậy 95% bằng bootstrap 5.000 lần lấy mẫu lại theo ca; kiểm định Wilcoxon trên điểm trung bình theo ca |
 | Độ mờ biên | Gradient Sobel trung bình trong dải hẹp (khoảng 4 px) quanh viền mask chuẩn, trên kênh đầu tiên (FLAIR với DS4), chuẩn hóa theo khoảng cường độ; **giá trị nhỏ = biên mờ**. Chia 3 nhóm phân vị (T1 = mờ nhất) |
@@ -37,6 +37,14 @@ Tập DS2 không có mã bệnh nhân nên mỗi ảnh được xem là một nh
 | SAM | 0,787 | 0,777 | 0,680 | 0,670 |
 | MedSAM | 0,788 | 0,782 | 0,678 | 0,670 |
 | Box-fill | 0,665 | 0,664 | 0,513 | 0,513 |
+
+**DS2, tập Validation (329 ảnh, Stratified 15% — chi tiết tại `val_protocol/week2_summary.md`)**
+
+| Phương pháp | Dice (TB) | Độ lệch chuẩn | IoU (TB) | Độ lệch chuẩn |
+|---|---|---|---|---|
+| SAM | 0,844 | 0,119 | 0,745 | 0,155 |
+| MedSAM | **0,846** | **0,099** | **0,745** | **0,137** |
+| Box-fill | 0,824 | 0,072 | 0,707 | 0,097 |
 
 **DS2, toàn bộ 2.192 ảnh**
 
