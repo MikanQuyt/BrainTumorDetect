@@ -79,6 +79,10 @@ BrainTumorDetect/
 
 ### Tuần 3 (`image/tuan3/` & `reports/tuan3/`) — Huấn luyện `ViT-LoRA` & Ablation Study Hạng LoRA ($r \in \{4, 8, 16, 32\}$)
 - **Báo cáo Khoa học Tuần 3**: [BAO_CAO_TUAN3.md](file:///E:/archive/BrainTumorDetect/reports/tuan3/BAO_CAO_TUAN3.md) & Bản Word in màu y khoa [BRISC2025_LoRA_Experiments.docx](file:///E:/archive/BrainTumorDetect/reports/tuan3/BRISC2025_LoRA_Experiments.docx).
+- **Google Colab Notebook Tuần 3**: Mở và chạy trực tiếp trên Google Colab GPU:  
+  [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/MikanQuyt/BrainTumorDetect/blob/Nguyen_Thanh_Hai_tuan3/notebooks/week3_vit_lora_brisc2025_colab.ipynb)  
+  → [
+otebooks/week3_vit_lora_brisc2025_colab.ipynb](notebooks/week3_vit_lora_brisc2025_colab.ipynb)
 - [fig1_ablation_multiclass_rank_study.png](file:///E:/archive/BrainTumorDetect/image/tuan3/fig1_ablation_multiclass_rank_study.png): Khảo sát đối sánh 4 cấu hình $r \in \{4, 8, 16, 32\}$ vs Full Fine-tuning trên BRISC 2025 đa lớp (F1, Accuracy, Tham số, Tốc độ hội tụ).
 - [fig2_ablation_binary_rank_study.png](file:///E:/archive/BrainTumorDetect/image/tuan3/fig2_ablation_binary_rank_study.png): Khảo sát bài toán phân loại nhị phân Có u / Không u (Độ nhạy Sensitivity 97.22%, Độ đặc hiệu 85.08%, ROC-AUC 0.9785).
 - [fig3_radar_comparison_architectures.png](file:///E:/archive/BrainTumorDetect/image/tuan3/fig3_radar_comparison_architectures.png): Biểu đồ Radar đối chiếu 6 chiều hiệu năng giữa Linear Probing, Full Fine-tuning và ViT-LoRA ($r=8$).

@@ -32,3 +32,7 @@ reports/week2/_trial/
 reports/week2/_trial_ds2/
 reports/week2/_trial_analysis/
 reports/week2/ds4_analysis/
+
+# Jupyter / Colab checkpoints
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/
