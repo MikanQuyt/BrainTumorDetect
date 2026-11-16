@@ -12,6 +12,22 @@ Ví dụ sử dụng:
 """
 from __future__ import annotations
 
+# Vá lỗi tương thích torchao trên môi trường Google Colab (nơi torchao < 0.16.0 được cài sẵn gây lỗi peft)
+try:
+    import peft.import_utils
+    _orig_is_torchao_available = getattr(peft.import_utils, "is_torchao_available", None)
+    if _orig_is_torchao_available is not None:
+        def _safe_is_torchao_available():
+            try:
+                return _orig_is_torchao_available()
+            except (ImportError, Exception):
+                return False
+        peft.import_utils.is_torchao_available = _safe_is_torchao_available
+        from peft.tuners.lora import torchao as _peft_torchao
+        _peft_torchao.is_torchao_available = _safe_is_torchao_available
+except Exception:
+    pass
+
 import argparse
 import csv
 import json

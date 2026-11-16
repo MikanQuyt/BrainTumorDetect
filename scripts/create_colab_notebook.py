@@ -58,6 +58,9 @@ Cài đặt các thư viện cần thiết: `timm`, `transformers`, `peft`, `alb
     add_code("""# Cell 1: Cài đặt thư viện & kiểm tra GPU
 import subprocess, sys, os
 
+print("📦 Đang gỡ bỏ torchao không tương thích trên Colab (nếu có)...")
+subprocess.run([sys.executable, "-m", "pip", "uninstall", "-y", "torchao"], check=False)
+
 print("📦 Đang cài đặt các thư viện cần thiết...")
 subprocess.run([
     sys.executable, "-m", "pip", "install", "-q",
@@ -73,6 +76,22 @@ subprocess.run([
     "seaborn>=0.12.0",
     "tqdm"
 ], check=True)
+
+# Vá lỗi tương thích torchao trên Google Colab nếu còn sót lại
+try:
+    import peft.import_utils
+    _orig = getattr(peft.import_utils, "is_torchao_available", None)
+    if _orig is not None:
+        def _safe():
+            try:
+                return _orig()
+            except (ImportError, Exception):
+                return False
+        peft.import_utils.is_torchao_available = _safe
+        from peft.tuners.lora import torchao as _peft_torchao
+        _peft_torchao.is_torchao_available = _safe
+except Exception:
+    pass
 
 # Tắt cảnh báo SSL của albumentations & song song hóa tokenizer
 os.environ["ALBUMENTATIONS_DISABLE_VERSION_CHECK"] = "1"
