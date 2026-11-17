@@ -259,7 +259,7 @@ def evaluate_auto_prompts(
         )
         if segmenter is not None and has_mask:
             pred_m_hm, _ = segmenter.predict(sample["image_1024"], hm_box)
-            seg_hm_meter.update(pred_m_hm, gt_mask_1024, sub_name)
+            seg_hm_meter.update(pred_m_hm, gt_mask_1024, subclass=sub_name)
 
         if res["regressed_boxes_1024"] is not None:
             reg_box = res["regressed_boxes_1024"][0].detach().cpu().numpy()
@@ -271,14 +271,16 @@ def evaluate_auto_prompts(
             )
             if segmenter is not None and has_mask:
                 pred_m_reg, _ = segmenter.predict(sample["image_1024"], reg_box)
-                seg_reg_meter.update(pred_m_reg, gt_mask_1024, sub_name)
+                seg_reg_meter.update(pred_m_reg, gt_mask_1024, subclass=sub_name)
 
-    out = {"weakly_supervised_heatmap": hm_meter.summary()}
-    if reg_meter.ious or reg_meter.hits:
+    out = {}
+    if getattr(hm_meter, "ious", None) or getattr(hm_meter, "hits", None):
+        out["weakly_supervised_heatmap"] = hm_meter.summary()
+    if getattr(reg_meter, "ious", None) or getattr(reg_meter, "hits", None):
         out["supervised_box_head"] = reg_meter.summary()
-    if seg_hm_meter.dices:
+    if getattr(seg_hm_meter, "rows", None):
         out["medsam_from_heatmap_prompt"] = seg_hm_meter.summary()
-    if seg_reg_meter.dices:
+    if getattr(seg_reg_meter, "rows", None):
         out["medsam_from_box_head_prompt"] = seg_reg_meter.summary()
     return out
 
