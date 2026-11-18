@@ -341,7 +341,12 @@ def train_single_split(args, train_ds, val_ds, test_ds, out_dir: Path) -> dict:
             weight_decay=args.weight_decay,
         )
     )
-    sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=max(args.epochs, 1))
+    if getattr(args, "scheduler", "cosine") == "plateau":
+        sched = torch.optim.lr_scheduler.ReduceLROnPlateau(
+            optimizer, mode="min", factor=0.5, patience=max(1, args.patience // 2), min_lr=1e-6
+        )
+    else:
+        sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=max(args.epochs, 1), eta_min=1e-6)
     scaler = torch.amp.GradScaler("cuda") if amp else None
 
     save_json(
@@ -357,9 +362,41 @@ def train_single_split(args, train_ds, val_ds, test_ds, out_dir: Path) -> dict:
         },
     )
 
-    history, best_score, best_state, best_epoch, bad = [], -1.0, None, 0, 0
+    start_epoch = 1
+    best_loss = float("inf")
+    best_score = -1.0
+    best_epoch = 0
+    bad = 0
+    history = []
+    best_state = None
+
+    if getattr(args, "resume", None) and Path(args.resume).exists():
+        ckpt_path = Path(args.resume)
+        print(f"🔄 Nạp lại checkpoint tiếp tục huấn luyện từ: {ckpt_path}")
+        ckpt = torch.load(ckpt_path, map_location=args.device)
+        if "model_state_dict" in ckpt:
+            model.load_state_dict(ckpt["model_state_dict"], strict=False)
+        elif "state_dict" in ckpt:
+            model.load_state_dict(ckpt["state_dict"], strict=False)
+        if "optimizer_state_dict" in ckpt and optimizer is not None:
+            try:
+                optimizer.load_state_dict(ckpt["optimizer_state_dict"])
+            except Exception as e:
+                print(f"⚠️  Không nạp được optimizer state dict: {e}")
+        if "scheduler_state_dict" in ckpt and sched is not None:
+            try:
+                sched.load_state_dict(ckpt["scheduler_state_dict"])
+            except Exception as e:
+                print(f"⚠️  Không nạp được scheduler state dict: {e}")
+        start_epoch = int(ckpt.get("epoch", 0)) + 1
+        best_loss = float(ckpt.get("val_loss", float("inf")))
+        best_score = float(ckpt.get("val_f1", -1.0))
+        best_epoch = int(ckpt.get("best_epoch", ckpt.get("epoch", 0)))
+        best_state = model.trainable_state_dict()
+        print(f"   Tiếp tục từ Epoch {start_epoch}/{args.epochs} (Best val loss: {best_loss:.4f}, Best epoch: {best_epoch})")
+
     t0 = time.time()
-    for epoch in range(1, args.epochs + 1):
+    for epoch in range(start_epoch, args.epochs + 1):
         tr, _ = run_epoch(
             model,
             train_loader,
@@ -386,7 +423,11 @@ def train_single_split(args, train_ds, val_ds, test_ds, out_dir: Path) -> dict:
             amp=amp,
             desc=f"[E{epoch} val]",
         )
-        sched.step()
+        if getattr(args, "scheduler", "cosine") == "plateau":
+            sched.step(va["loss"])
+        else:
+            sched.step()
+
         val_box_iou = va.get("box_head_localization", {}).get("mean_box_iou", float("nan"))
         row = {
             "epoch": epoch,
@@ -407,22 +448,64 @@ def train_single_split(args, train_ds, val_ds, test_ds, out_dir: Path) -> dict:
         }
         history.append(row)
         print(
-            f"Epoch {epoch}/{args.epochs}  train_loss={tr['loss']:.4f} val_loss={va['loss']:.4f} "
+            f"Epoch {epoch}/{args.epochs}  train_loss={tr['loss']:.4f} (cls={tr['cls_loss']:.4f}) "
+            f"val_loss={va['loss']:.4f} (cls={va['cls_loss']:.4f}) "
             f"val_f1={va['f1']:.4f} val_recall={va['recall']:.4f} val_box_iou={val_box_iou:.4f}",
             flush=True,
         )
 
-        score = va["f1"] + (0.2 * val_box_iou if not np.isnan(val_box_iou) else 0.0)
-        if score > best_score:
-            best_score, best_epoch, bad = score, epoch, 0
+        # Lưu checkpoint latest sau mỗi epoch (đáp ứng yêu cầu của trưởng nhóm)
+        latest_ckpt = {
+            "epoch": epoch,
+            "best_epoch": best_epoch,
+            "model_state_dict": model.trainable_state_dict(),
+            "optimizer_state_dict": optimizer.state_dict(),
+            "scheduler_state_dict": sched.state_dict(),
+            "train_loss": tr["loss"],
+            "val_loss": va["loss"],
+            "val_f1": va["f1"],
+            "val_acc": va["accuracy"],
+            "config": vars(args),
+        }
+        torch.save(latest_ckpt, out_dir / "loss_latest.pth")
+        if getattr(args, "drive_dir", None):
+            drive_p = Path(args.drive_dir)
+            drive_p.mkdir(parents=True, exist_ok=True)
+            torch.save(latest_ckpt, drive_p / "loss_latest.pth")
+
+        # Cơ chế giám sát Early Stopping
+        is_best = False
+        early_metric = getattr(args, "early_stop_metric", "loss")
+        if early_metric == "loss":
+            if va["loss"] < best_loss - 1e-4:
+                best_loss = va["loss"]
+                best_epoch = epoch
+                bad = 0
+                is_best = True
+            else:
+                bad += 1
+        else:
+            score = va["f1"] + (0.2 * val_box_iou if not np.isnan(val_box_iou) else 0.0)
+            if score > best_score:
+                best_score = score
+                best_epoch = epoch
+                bad = 0
+                is_best = True
+            else:
+                bad += 1
+
+        if is_best:
             best_state = model.trainable_state_dict()
             save_json(out_dir / "val_best.json", {"epoch": epoch, **va})
-            model.save_lora_checkpoint(out_dir / "best_lora.pt", extra={"epoch": epoch, "val_f1": va["f1"]})
-        else:
-            bad += 1
-            if args.patience and bad >= args.patience:
-                print(f"Dừng sớm tại epoch {epoch} (best epoch {best_epoch}).")
-                break
+            torch.save(latest_ckpt, out_dir / "loss_best.pth")
+            model.save_lora_checkpoint(out_dir / "best_lora.pt", extra={"epoch": epoch, "val_loss": va["loss"], "val_f1": va["f1"]})
+            if getattr(args, "drive_dir", None):
+                torch.save(latest_ckpt, Path(args.drive_dir) / "loss_best.pth")
+            print(f"   ⭐ [Kỷ lục mới] Epoch {epoch}: val_loss={va['loss']:.4f}, val_f1={va['f1']:.4f} -> Đã lưu loss_best.pth!", flush=True)
+
+        if args.patience and bad >= args.patience:
+            print(f"🛑 Dừng sớm (Early Stopping) tại epoch {epoch} (Mô hình tốt nhất tại epoch {best_epoch}).", flush=True)
+            break
 
     with open(out_dir / "history.csv", "w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=list(history[0]), lineterminator="\n")
@@ -505,6 +588,10 @@ def main(argv=None):
     ap.add_argument("--dropout", type=float, default=0.1)
     ap.add_argument("--weight-decay", type=float, default=0.01)
     ap.add_argument("--patience", type=int, default=5)
+    ap.add_argument("--early-stop-metric", choices=["loss", "score", "f1"], default="loss", help="Tiêu chí early stopping")
+    ap.add_argument("--scheduler", choices=["cosine", "plateau"], default="cosine", help="Bộ điều chỉnh learning rate")
+    ap.add_argument("--resume", default=None, help="Đường dẫn file .pth để tiếp tục huấn luyện")
+    ap.add_argument("--drive-dir", default=None, help="Thư mục Google Drive để tự động lưu loss_best.pth và loss_latest.pth")
     ap.add_argument("--workers", type=int, default=0)
     ap.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
     ap.add_argument("--amp", action="store_true")
