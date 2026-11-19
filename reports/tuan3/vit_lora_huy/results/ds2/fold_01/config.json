@@ -1,0 +1,51 @@
+{
+  "identity": {
+    "dataset": "ds2",
+    "fold": 1,
+    "task": "multiclass",
+    "config": {
+      "epochs": 1000,
+      "patience": 25,
+      "lr_patience": 5,
+      "min_delta": 0.0001,
+      "batch_size": 8,
+      "lr_lora": 0.0003,
+      "lr_head": 0.001,
+      "lr_box": 0.001,
+      "weight_decay": 0.01,
+      "box_loss_weight": 1.0,
+      "loss": "focal",
+      "label_smoothing": 0.05,
+      "seed": 42,
+      "amp": true,
+      "offline": false,
+      "model_name": "google/vit-base-patch16-224-in21k"
+    },
+    "data_sha256": "e023790a817bf015a1cc9933bc84c71dbf2ed3bd54bf384fb377932d7b7605c2",
+    "records_sha256": "a4335261976b4fc3220b0b7f33e7666fdc62a8accb1cd7ddd9ebe8ed36bd631b",
+    "code_sha256": "1c84166f333e8e05e80926bb6f9730cd805a1f21882c46e6c6c350c3a22b55d2"
+  },
+  "versions": {
+    "torch": "2.6.0+cu126",
+    "transformers": "4.57.1",
+    "peft": "0.17.1",
+    "albumentations": "2.0.8",
+    "numpy": "2.2.6"
+  },
+  "params": {
+    "total": 86598857,
+    "trainable": 800201,
+    "trainable_pct": 0.9240318264246836,
+    "backbone_total": 86093568,
+    "lora_params": 294912,
+    "lora_pct_of_backbone": 0.34254823774988624,
+    "head_params": 3076,
+    "box_head_params": 502213,
+    "num_lora_modules": 24
+  },
+  "model_name": "google/vit-base-patch16-224-in21k",
+  "base_revision": "b4569560a39a0f1af58e3ddaf17facf20ab919b0",
+  "n_train": 6461,
+  "n_val": 1393,
+  "n_test": 1361
+}

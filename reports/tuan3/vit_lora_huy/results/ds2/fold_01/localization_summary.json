@@ -1,0 +1,40 @@
+{
+  "scope": "all held-out DS2 segmentation samples; no GT prompts",
+  "box_method": "shared AutoPromptGenerator mode=box_head, padding=0.08",
+  "point_method": "predicted Rollout/LayerCAM peak inside GT mask (1024 coordinates)",
+  "ungated_vs_end_to_end": "end_to_end assigns zero IoU and a missed point to detector-negative tumors",
+  "overall": {
+    "n": 329,
+    "n_detected": 329,
+    "mean_box_iou": 0.6260636507051586,
+    "pointing_game_accuracy": 0.7872340425531915,
+    "end_to_end_mean_box_iou": 0.6260636507051586,
+    "end_to_end_pointing_game_accuracy": 0.7872340425531915
+  },
+  "per_class": {
+    "glioma": {
+      "n": 83,
+      "n_detected": 83,
+      "mean_box_iou": 0.5765877740952919,
+      "pointing_game_accuracy": 0.6746987951807228,
+      "end_to_end_mean_box_iou": 0.5765877740952919,
+      "end_to_end_pointing_game_accuracy": 0.6746987951807228
+    },
+    "meningioma": {
+      "n": 107,
+      "n_detected": 107,
+      "mean_box_iou": 0.6042858497658784,
+      "pointing_game_accuracy": 0.7009345794392523,
+      "end_to_end_mean_box_iou": 0.6042858497658784,
+      "end_to_end_pointing_game_accuracy": 0.7009345794392523
+    },
+    "pituitary": {
+      "n": 139,
+      "n_detected": 139,
+      "mean_box_iou": 0.6723710065261794,
+      "pointing_game_accuracy": 0.920863309352518,
+      "end_to_end_mean_box_iou": 0.6723710065261794,
+      "end_to_end_pointing_game_accuracy": 0.920863309352518
+    }
+  }
+}

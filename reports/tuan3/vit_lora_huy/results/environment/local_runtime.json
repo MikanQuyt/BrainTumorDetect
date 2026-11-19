@@ -1,0 +1,8 @@
+{
+  "python": "3.12.16 | packaged by conda-forge | (main, Oct 26 2026, 11:29:01) [MSC v.1944 64 bit (AMD64)]",
+  "executable": "C:\\Users\\Admin\\anaconda\\envs\\braintumor_tuan3\\python.exe",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "torch": "2.6.0+cu126",
+  "cuda": "12.6",
+  "gpu": "NVIDIA GeForce RTX 3050 Ti Laptop GPU"
+}

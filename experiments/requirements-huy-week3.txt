@@ -1,0 +1,13 @@
+# Keep Colab's preinstalled CUDA torch/torchvision pair. CPU tests used torch 2.6.0.
+transformers==4.57.1
+peft==0.17.1
+accelerate==1.16.0
+huggingface-hub==0.36.2
+albumentations==2.0.8
+opencv-python-headless==4.12.0.88
+numpy==2.2.6
+scikit-learn==1.7.2
+timm==1.0.22
+matplotlib==3.10.7
+kagglehub==0.3.13
+nbformat==5.10.4
