@@ -1,0 +1,76 @@
+{
+  "n_folds": 5,
+  "n_oof_images": 253,
+  "classification_pooled": {
+    "n": 253,
+    "accuracy": 0.8853754940711462,
+    "precision": 0.92,
+    "recall": 0.8903225806451613,
+    "f1": 0.9049180327868852,
+    "auc": 0.9592495062541145,
+    "average": "binary",
+    "auc_classes_missing": [],
+    "per_class": {
+      "no_tumor": {
+        "precision": 0.8349514563106796,
+        "recall": 0.8775510204081632,
+        "f1": 0.8557213930348259,
+        "support": 98
+      },
+      "tumor": {
+        "precision": 0.92,
+        "recall": 0.8903225806451613,
+        "f1": 0.9049180327868852,
+        "support": 155
+      }
+    },
+    "confusion_matrix": [
+      [
+        86,
+        12
+      ],
+      [
+        17,
+        138
+      ]
+    ],
+    "class_names": [
+      "no_tumor",
+      "tumor"
+    ]
+  },
+  "detection_050_pooled": {
+    "threshold": 0.5,
+    "tp": 138,
+    "tn": 86,
+    "fp": 12,
+    "fn": 17,
+    "accuracy": 0.8853754940711462,
+    "recall": 0.8903225806451613,
+    "specificity": 0.8775510204081632,
+    "precision": 0.92,
+    "f1": 0.9049180327868852,
+    "auc": 0.9592495062541145
+  },
+  "detection_selected_pooled": {
+    "tp": 148,
+    "tn": 79,
+    "fp": 19,
+    "fn": 7,
+    "recall": 0.9548387096774194,
+    "specificity": 0.8061224489795918,
+    "precision": 0.8862275449101796,
+    "accuracy": 0.8972332015810277,
+    "threshold_policy": "each outer fold uses its own inner-validation threshold"
+  },
+  "target_met": false,
+  "fold_recall_mean": 0.9548387096774194,
+  "fold_recall_sample_std": 0.05397806622800488,
+  "per_fold_thresholds": [
+    0.4,
+    0.4,
+    0.37,
+    0.4,
+    0.4
+  ]
+}

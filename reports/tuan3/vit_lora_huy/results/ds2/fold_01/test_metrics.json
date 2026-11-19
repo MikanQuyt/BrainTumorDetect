@@ -1,0 +1,291 @@
+{
+  "identity": {
+    "dataset": "ds2",
+    "fold": 1,
+    "task": "multiclass",
+    "config": {
+      "epochs": 1000,
+      "patience": 25,
+      "lr_patience": 5,
+      "min_delta": 0.0001,
+      "batch_size": 8,
+      "lr_lora": 0.0003,
+      "lr_head": 0.001,
+      "lr_box": 0.001,
+      "weight_decay": 0.01,
+      "box_loss_weight": 1.0,
+      "loss": "focal",
+      "label_smoothing": 0.05,
+      "seed": 42,
+      "amp": true,
+      "offline": false,
+      "model_name": "google/vit-base-patch16-224-in21k"
+    },
+    "data_sha256": "e023790a817bf015a1cc9933bc84c71dbf2ed3bd54bf384fb377932d7b7605c2",
+    "records_sha256": "a4335261976b4fc3220b0b7f33e7666fdc62a8accb1cd7ddd9ebe8ed36bd631b",
+    "code_sha256": "1c84166f333e8e05e80926bb6f9730cd805a1f21882c46e6c6c350c3a22b55d2"
+  },
+  "training": {
+    "best_epoch": 102,
+    "best_val_loss": 0.22935905111238242,
+    "epochs_completed": 104,
+    "early_stopped": true
+  },
+  "params": {
+    "total": 86598857,
+    "trainable": 800201,
+    "trainable_pct": 0.9240318264246836,
+    "backbone_total": 86093568,
+    "lora_params": 294912,
+    "lora_pct_of_backbone": 0.34254823774988624,
+    "head_params": 3076,
+    "box_head_params": 502213,
+    "num_lora_modules": 24
+  },
+  "classification": {
+    "n": 1032,
+    "accuracy": 0.9835271317829457,
+    "precision": 0.9831523304833101,
+    "recall": 0.9829202188230397,
+    "f1": 0.9829977602465187,
+    "auc": 0.9977408623190795,
+    "average": "macro",
+    "auc_classes_missing": [],
+    "per_class": {
+      "no_tumor": {
+        "precision": 0.9929824561403509,
+        "recall": 0.9929824561403509,
+        "f1": 0.9929824561403509,
+        "support": 285
+      },
+      "glioma": {
+        "precision": 0.9795918367346939,
+        "recall": 0.9876543209876543,
+        "f1": 0.9836065573770492,
+        "support": 243
+      },
+      "meningioma": {
+        "precision": 0.9789029535864979,
+        "recall": 0.9586776859504132,
+        "f1": 0.9686847599164927,
+        "support": 242
+      },
+      "pituitary": {
+        "precision": 0.9811320754716981,
+        "recall": 0.9923664122137404,
+        "f1": 0.9867172675521821,
+        "support": 262
+      }
+    },
+    "confusion_matrix": [
+      [
+        283,
+        0,
+        0,
+        2
+      ],
+      [
+        0,
+        240,
+        3,
+        0
+      ],
+      [
+        2,
+        5,
+        232,
+        3
+      ],
+      [
+        0,
+        0,
+        2,
+        260
+      ]
+    ],
+    "class_names": [
+      "no_tumor",
+      "glioma",
+      "meningioma",
+      "pituitary"
+    ]
+  },
+  "detection_050": {
+    "threshold": 0.5,
+    "tp": 745,
+    "tn": 282,
+    "fp": 3,
+    "fn": 2,
+    "accuracy": 0.9951550387596899,
+    "recall": 0.9973226238286479,
+    "specificity": 0.9894736842105263,
+    "precision": 0.9959893048128342,
+    "f1": 0.9966555183946488,
+    "auc": 0.9984170600530778
+  },
+  "detection_selected": {
+    "threshold": 0.4,
+    "tp": 745,
+    "tn": 282,
+    "fp": 3,
+    "fn": 2,
+    "accuracy": 0.9951550387596899,
+    "recall": 0.9973226238286479,
+    "specificity": 0.9894736842105263,
+    "precision": 0.9959893048128342,
+    "f1": 0.9966555183946488,
+    "auc": 0.9984170600530778
+  },
+  "threshold_selection": {
+    "selected_on": "validation classification samples only",
+    "target_recall_strictly_above": 0.96,
+    "validation_target_met": true,
+    "best": {
+      "threshold": 0.4,
+      "tp": 753,
+      "tn": 301,
+      "fp": 8,
+      "fn": 2,
+      "accuracy": 0.9906015037593985,
+      "recall": 0.9973509933774835,
+      "specificity": 0.9741100323624595,
+      "precision": 0.9894875164257556,
+      "f1": 0.9934036939313984,
+      "auc": 0.9997085235431535
+    },
+    "curve": [
+      {
+        "threshold": 0.5,
+        "tp": 752,
+        "tn": 304,
+        "fp": 5,
+        "fn": 3,
+        "accuracy": 0.9924812030075187,
+        "recall": 0.9960264900662251,
+        "specificity": 0.9838187702265372,
+        "precision": 0.9933949801849405,
+        "f1": 0.9947089947089947,
+        "auc": 0.9997085235431535
+      },
+      {
+        "threshold": 0.35,
+        "tp": 753,
+        "tn": 301,
+        "fp": 8,
+        "fn": 2,
+        "accuracy": 0.9906015037593985,
+        "recall": 0.9973509933774835,
+        "specificity": 0.9741100323624595,
+        "precision": 0.9894875164257556,
+        "f1": 0.9934036939313984,
+        "auc": 0.9997085235431535
+      },
+      {
+        "threshold": 0.36,
+        "tp": 753,
+        "tn": 301,
+        "fp": 8,
+        "fn": 2,
+        "accuracy": 0.9906015037593985,
+        "recall": 0.9973509933774835,
+        "specificity": 0.9741100323624595,
+        "precision": 0.9894875164257556,
+        "f1": 0.9934036939313984,
+        "auc": 0.9997085235431535
+      },
+      {
+        "threshold": 0.37,
+        "tp": 753,
+        "tn": 301,
+        "fp": 8,
+        "fn": 2,
+        "accuracy": 0.9906015037593985,
+        "recall": 0.9973509933774835,
+        "specificity": 0.9741100323624595,
+        "precision": 0.9894875164257556,
+        "f1": 0.9934036939313984,
+        "auc": 0.9997085235431535
+      },
+      {
+        "threshold": 0.38,
+        "tp": 753,
+        "tn": 301,
+        "fp": 8,
+        "fn": 2,
+        "accuracy": 0.9906015037593985,
+        "recall": 0.9973509933774835,
+        "specificity": 0.9741100323624595,
+        "precision": 0.9894875164257556,
+        "f1": 0.9934036939313984,
+        "auc": 0.9997085235431535
+      },
+      {
+        "threshold": 0.39,
+        "tp": 753,
+        "tn": 301,
+        "fp": 8,
+        "fn": 2,
+        "accuracy": 0.9906015037593985,
+        "recall": 0.9973509933774835,
+        "specificity": 0.9741100323624595,
+        "precision": 0.9894875164257556,
+        "f1": 0.9934036939313984,
+        "auc": 0.9997085235431535
+      },
+      {
+        "threshold": 0.4,
+        "tp": 753,
+        "tn": 301,
+        "fp": 8,
+        "fn": 2,
+        "accuracy": 0.9906015037593985,
+        "recall": 0.9973509933774835,
+        "specificity": 0.9741100323624595,
+        "precision": 0.9894875164257556,
+        "f1": 0.9934036939313984,
+        "auc": 0.9997085235431535
+      }
+    ]
+  },
+  "test_target_met": true,
+  "localization": {
+    "scope": "all held-out DS2 segmentation samples; no GT prompts",
+    "box_method": "shared AutoPromptGenerator mode=box_head, padding=0.08",
+    "point_method": "predicted Rollout/LayerCAM peak inside GT mask (1024 coordinates)",
+    "ungated_vs_end_to_end": "end_to_end assigns zero IoU and a missed point to detector-negative tumors",
+    "overall": {
+      "n": 329,
+      "n_detected": 329,
+      "mean_box_iou": 0.6260636507051586,
+      "pointing_game_accuracy": 0.7872340425531915,
+      "end_to_end_mean_box_iou": 0.6260636507051586,
+      "end_to_end_pointing_game_accuracy": 0.7872340425531915
+    },
+    "per_class": {
+      "glioma": {
+        "n": 83,
+        "n_detected": 83,
+        "mean_box_iou": 0.5765877740952919,
+        "pointing_game_accuracy": 0.6746987951807228,
+        "end_to_end_mean_box_iou": 0.5765877740952919,
+        "end_to_end_pointing_game_accuracy": 0.6746987951807228
+      },
+      "meningioma": {
+        "n": 107,
+        "n_detected": 107,
+        "mean_box_iou": 0.6042858497658784,
+        "pointing_game_accuracy": 0.7009345794392523,
+        "end_to_end_mean_box_iou": 0.6042858497658784,
+        "end_to_end_pointing_game_accuracy": 0.7009345794392523
+      },
+      "pituitary": {
+        "n": 139,
+        "n_detected": 139,
+        "mean_box_iou": 0.6723710065261794,
+        "pointing_game_accuracy": 0.920863309352518,
+        "end_to_end_mean_box_iou": 0.6723710065261794,
+        "end_to_end_pointing_game_accuracy": 0.920863309352518
+      }
+    }
+  }
+}

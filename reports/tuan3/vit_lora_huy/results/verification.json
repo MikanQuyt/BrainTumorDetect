@@ -1,0 +1,38 @@
+{
+  "status": "passed",
+  "ds1_oof_n": 253,
+  "ds2_classification_test_n": 1032,
+  "ds2_segmentation_test_n": 329,
+  "history_epochs": 104,
+  "ds2_best_epoch": 102,
+  "ds2_last_bad_epochs": 25,
+  "threshold_selected_on_validation": 0.4,
+  "ds1_target_met": false,
+  "ds2_target_met": true,
+  "ds1_fold_recalls": [
+    0.8709677419354839,
+    1.0,
+    1.0,
+    0.9354838709677419,
+    0.967741935483871
+  ],
+  "ds1_fold_recall_std": 0.05397806622800488,
+  "ds2_point_hits": 259,
+  "ds2_detected": 329,
+  "ds2_common_week2_test_n": 1029,
+  "ds2_common_week2_test_accuracy": 0.9834791059280855,
+  "code_sha256": "1c84166f333e8e05e80926bb6f9730cd805a1f21882c46e6c6c350c3a22b55d2",
+  "verified": [
+    "CSV row counts, unique sample IDs, validation/test disjoint IDs",
+    "DS1 fold thresholds, confusion counts and pooled metrics",
+    "DS2 four-class predictions, confusion matrix, macro metrics and ROC-AUC",
+    "DS2 threshold chosen from validation; frozen threshold evaluated on test",
+    "329 per-sample box IoUs recomputed from coordinates; reported point-hit aggregation checked",
+    "104 history rows, selected checkpoint epoch, early stopping counter",
+    "Run code fingerprint matches the nine local source files"
+  ],
+  "limitations": [
+    "Point-in-mask hits were aggregated from exported point_hit; raw masks were not reloaded during this audit",
+    "Exact-duplicate grouping uses the exported data audit; near-duplicate and patient-level independence remain unverified"
+  ]
+}

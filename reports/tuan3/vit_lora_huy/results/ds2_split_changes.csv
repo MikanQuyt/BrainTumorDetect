@@ -1,0 +1,4 @@
+sample_id,duplicate_group,sub_class_label,week2_split,week3_split
+dataset/indk214/DATASET/classification/Training/notumor/enh_Tr-no_0202.jpg,50018bbb1af12ac4a93cf60abfc0662b6cf041f5ec8121a1791205d05326edc1,0,train,test
+dataset/indk214/DATASET/classification/Training/notumor/enh_Tr-no_1178.jpg,50018bbb1af12ac4a93cf60abfc0662b6cf041f5ec8121a1791205d05326edc1,0,train,test
+dataset/indk214/DATASET/classification/Testing/notumor/enh_Te-no_0046.jpg,50018bbb1af12ac4a93cf60abfc0662b6cf041f5ec8121a1791205d05326edc1,0,train,test

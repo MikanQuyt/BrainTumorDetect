@@ -1,0 +1,116 @@
+{
+  "split_policy": "DS1: Week 2 folds; DS2: Week 2 classification split with merged-group repair (test > val > train), segmentation anchored to repaired groups",
+  "duplicate_scope": "exact grayscale pixels + dimensions, before and after crop/CLAHE; not patient-level or near-duplicate verification",
+  "week2_input_size": 112,
+  "week3_input_size": 224,
+  "ds1": {
+    "n": 253,
+    "n_unique_paths": 253,
+    "n_exact_groups": 228,
+    "n_masks": 0,
+    "cross_source_duplicate_groups": 0,
+    "splits": [
+      {
+        "fold": 1,
+        "train": {
+          "classification": 159
+        },
+        "val": {
+          "classification": 43
+        },
+        "test": {
+          "classification": 51
+        }
+      },
+      {
+        "fold": 2,
+        "train": {
+          "classification": 162
+        },
+        "val": {
+          "classification": 40
+        },
+        "test": {
+          "classification": 51
+        }
+      },
+      {
+        "fold": 3,
+        "train": {
+          "classification": 163
+        },
+        "val": {
+          "classification": 39
+        },
+        "test": {
+          "classification": 51
+        }
+      },
+      {
+        "fold": 4,
+        "train": {
+          "classification": 164
+        },
+        "val": {
+          "classification": 39
+        },
+        "test": {
+          "classification": 50
+        }
+      },
+      {
+        "fold": 5,
+        "train": {
+          "classification": 162
+        },
+        "val": {
+          "classification": 41
+        },
+        "test": {
+          "classification": 50
+        }
+      }
+    ]
+  },
+  "ds2": {
+    "n": 9215,
+    "n_unique_paths": 9215,
+    "n_exact_groups": 8788,
+    "n_masks": 2192,
+    "cross_source_duplicate_groups": 0,
+    "splits": [
+      {
+        "fold": 1,
+        "train": {
+          "classification": 4927,
+          "segmentation": 1534
+        },
+        "val": {
+          "classification": 1064,
+          "segmentation": 329
+        },
+        "test": {
+          "classification": 1032,
+          "segmentation": 329
+        }
+      }
+    ],
+    "classification_split_repair": {
+      "rule": "test > val > train; retain all images; no held-out image moves to training",
+      "n_conflicting_groups": 1,
+      "n_images_moved": 3,
+      "counts_week2": {
+        "train": 4930,
+        "val": 1064,
+        "test": 1029
+      },
+      "counts_week3": {
+        "train": 4927,
+        "val": 1064,
+        "test": 1032
+      },
+      "all_original_test_images_preserved": true
+    },
+    "split_changes_file": "dataset/huy_week3/ds2_split_changes.csv"
+  }
+}
