@@ -226,9 +226,9 @@ def evaluate_auto_prompts(
 
     segmenter = None
     if eval_medsam:
-        from models.sam_wrappers import MedSamBoxSegmenter
+        from models.sam_wrappers import load_segmenter
 
-        segmenter = MedSamBoxSegmenter(device=device, local_files_only=offline)
+        segmenter = load_segmenter("medsam", device=device)
 
     tumor_indices = [i for i, r in enumerate(dataset.records) if int(r.get("has_tumor", 0)) == 1]
     if not tumor_indices:
@@ -258,7 +258,8 @@ def evaluate_auto_prompts(
             gt_mask=gt_mask_1024,
         )
         if segmenter is not None and has_mask:
-            pred_m_hm, _ = segmenter.predict(sample["image_1024"], hm_box)
+            _img_1024 = (sample["image_1024"].permute(1, 2, 0).numpy() * 255.0).round().astype(np.uint8)
+            pred_m_hm = segmenter.segment(_img_1024, hm_box)
             seg_hm_meter.update(pred_m_hm, gt_mask_1024, subclass=sub_name)
 
         if res["regressed_boxes_1024"] is not None:
@@ -270,7 +271,8 @@ def evaluate_auto_prompts(
                 gt_mask=gt_mask_1024,
             )
             if segmenter is not None and has_mask:
-                pred_m_reg, _ = segmenter.predict(sample["image_1024"], reg_box)
+                _img_1024 = (sample["image_1024"].permute(1, 2, 0).numpy() * 255.0).round().astype(np.uint8)
+                pred_m_reg = segmenter.segment(_img_1024, reg_box)
                 seg_reg_meter.update(pred_m_reg, gt_mask_1024, subclass=sub_name)
 
     out = {}
@@ -507,10 +509,11 @@ def train_single_split(args, train_ds, val_ds, test_ds, out_dir: Path) -> dict:
             print(f"🛑 Dừng sớm (Early Stopping) tại epoch {epoch} (Mô hình tốt nhất tại epoch {best_epoch}).", flush=True)
             break
 
-    with open(out_dir / "history.csv", "w", newline="", encoding="utf-8") as f:
-        w = csv.DictWriter(f, fieldnames=list(history[0]), lineterminator="\n")
-        w.writeheader()
-        w.writerows(history)
+    if history:
+        with open(out_dir / "history.csv", "w", newline="", encoding="utf-8") as f:
+            w = csv.DictWriter(f, fieldnames=list(history[0]), lineterminator="\n")
+            w.writeheader()
+            w.writerows(history)
 
     model.load_state_dict(best_state, strict=False)
     test_metrics, test_meter = run_epoch(
