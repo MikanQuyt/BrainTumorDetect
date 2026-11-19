@@ -211,6 +211,14 @@ class SegmentationMeter:
         self.spacing = spacing
         self.rows: list[dict] = []
 
+    @property
+    def dices(self) -> list[float]:
+        return [float(r["dice"]) for r in self.rows if "dice" in r]
+
+    @property
+    def ious(self) -> list[float]:
+        return [float(r["iou"]) for r in self.rows if "iou" in r]
+
     def update(self, pred, gt, **extra):
         r = segmentation_metrics(pred, gt, self.spacing)
         r["pred_empty"] = bool(not _bin(pred).any())
