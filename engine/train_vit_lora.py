@@ -210,9 +210,9 @@ def evaluate_auto_prompts(
 
     segmenter = None
     if eval_medsam:
-        from models.sam_wrappers import MedSamBoxSegmenter
+        from models.sam_wrappers import load_segmenter
 
-        segmenter = MedSamBoxSegmenter(device=device, local_files_only=offline)
+        segmenter = load_segmenter("medsam", device=device)
 
     tumor_indices = [i for i, r in enumerate(dataset.records) if int(r.get("has_tumor", 0)) == 1]
     if not tumor_indices:
@@ -242,8 +242,9 @@ def evaluate_auto_prompts(
             gt_mask=gt_mask_1024,
         )
         if segmenter is not None and has_mask:
-            pred_m_hm, _ = segmenter.predict(sample["image_1024"], hm_box)
-            seg_hm_meter.update(pred_m_hm, gt_mask_1024, sub_name)
+            img_1024_u8 = (sample["image_1024"].permute(1, 2, 0).numpy() * 255.0).round().astype(np.uint8)
+            pred_m_hm = segmenter.segment(img_1024_u8, hm_box)
+            seg_hm_meter.update(pred_m_hm, gt_mask_1024, subclass=sub_name)
 
         if res["regressed_boxes_1024"] is not None:
             reg_box = res["regressed_boxes_1024"][0].detach().cpu().numpy()
@@ -254,15 +255,18 @@ def evaluate_auto_prompts(
                 gt_mask=gt_mask_1024,
             )
             if segmenter is not None and has_mask:
-                pred_m_reg, _ = segmenter.predict(sample["image_1024"], reg_box)
-                seg_reg_meter.update(pred_m_reg, gt_mask_1024, sub_name)
+                img_1024_u8 = (sample["image_1024"].permute(1, 2, 0).numpy() * 255.0).round().astype(np.uint8)
+                pred_m_reg = segmenter.segment(img_1024_u8, reg_box)
+                seg_reg_meter.update(pred_m_reg, gt_mask_1024, subclass=sub_name)
 
-    out = {"weakly_supervised_heatmap": hm_meter.summary()}
+    out = {}
+    if hm_meter.ious or hm_meter.hits:
+        out["weakly_supervised_heatmap"] = hm_meter.summary()
     if reg_meter.ious or reg_meter.hits:
         out["supervised_box_head"] = reg_meter.summary()
-    if seg_hm_meter.dices:
+    if seg_hm_meter.rows:
         out["medsam_from_heatmap_prompt"] = seg_hm_meter.summary()
-    if seg_reg_meter.dices:
+    if seg_reg_meter.rows:
         out["medsam_from_box_head_prompt"] = seg_reg_meter.summary()
     return out
 

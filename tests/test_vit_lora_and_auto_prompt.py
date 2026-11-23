@@ -151,6 +151,12 @@ class TestLossesAndBoxRegression(unittest.TestCase):
         self.assertAlmostEqual(float(w.mean()), 1.0, places=5)
         self.assertLess(float(w[0]), float(w[1]))
 
+        # Khi có lớp vắng mặt (ví dụ BraTS2020 chỉ có lớp 0 và 1), lớp rỗng nhận trọng số 0.0
+        w_missing = compute_class_weights([0, 0, 1, 1, 1], num_classes=4)
+        self.assertEqual(float(w_missing[2]), 0.0)
+        self.assertEqual(float(w_missing[3]), 0.0)
+        self.assertAlmostEqual(float(w_missing[:2].mean()), 1.0, places=5)
+
         logits = torch.randn(6, 4, requires_grad=True)
         targets = torch.tensor(labels, dtype=torch.long)
 
