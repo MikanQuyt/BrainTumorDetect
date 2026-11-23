@@ -7,6 +7,7 @@ from models.auto_prompt import (
     fuse_rollout_and_layercam,
     heatmap_to_box_and_points,
 )
+from models.medsam_lora import LoRAQKV, MedSamLoRA, inject_lora_into_image_encoder, jitter_boxes
 from models.sam_wrappers import MedSamBoxSegmenter, SamBoxSegmenter, load_segmenter
 from models.vit_baseline import MODEL_NAME, MODES, ViTBaseline, build_vit_baseline
 from models.vit_lora import ViTDetBoxHead, ViTLoRA, build_vit_lora, pad_normalized_boxes
@@ -26,6 +27,10 @@ __all__ = [
     "extract_brain_parenchyma_mask",
     "fuse_rollout_and_layercam",
     "heatmap_to_box_and_points",
+    "LoRAQKV",
+    "MedSamLoRA",
+    "inject_lora_into_image_encoder",
+    "jitter_boxes",
     "SamBoxSegmenter",
     "MedSamBoxSegmenter",
     "load_segmenter",

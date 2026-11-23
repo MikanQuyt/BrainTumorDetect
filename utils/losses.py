@@ -28,6 +28,9 @@ __all__ = [
     "generalized_box_iou_tensor",
     "GIoULoss",
     "BoxRegressionLoss",
+    "DiceLoss",
+    "BinaryFocalLoss",
+    "SegmentationLoss",
 ]
 
 
@@ -36,15 +39,25 @@ def compute_class_weights(
     num_classes: int,
     smooth: float = 1.0,
 ) -> torch.Tensor:
-    """Tính trọng số lớp nghịch đảo tần suất: w_c = N / (C * (count_c + smooth)), chuẩn hóa trung bình = 1.0."""
+    """Tính trọng số lớp nghịch đảo tần suất: w_c = N / (C_present * (count_c + smooth)).
+
+    Các lớp vắng mặt (count_c == 0) nhận trọng số 0.0 để tránh bùng nổ trọng số lớp rỗng khi
+    kết hợp với Label Smoothing; chuẩn hóa trung bình = 1.0 trên các lớp có mặt.
+    """
     if isinstance(labels, torch.Tensor):
         arr = labels.detach().cpu().numpy().astype(np.int64).reshape(-1)
     else:
         arr = np.asarray(labels, dtype=np.int64).reshape(-1)
     counts = np.bincount(arr[(arr >= 0) & (arr < num_classes)], minlength=num_classes).astype(np.float64)
-    total = max(float(counts.sum()), 1.0)
-    weights = total / (num_classes * (counts + smooth))
-    weights = weights / max(float(weights.mean()), 1e-8)
+    present = counts > 0
+    weights = np.zeros(num_classes, dtype=np.float64)
+    if present.any():
+        total = max(float(counts.sum()), 1.0)
+        n_present = int(present.sum())
+        weights[present] = total / (n_present * (counts[present] + smooth))
+        weights[present] = weights[present] / max(float(weights[present].mean()), 1e-8)
+    else:
+        weights[:] = 1.0
     return torch.tensor(weights, dtype=torch.float32)
 
 
@@ -282,3 +295,76 @@ class BoxRegressionLoss(nn.Module):
             "mean_iou": iou.detach().mean(),
             "n_boxes": torch.tensor(int(pred.shape[0]), device=pred_boxes.device),
         }
+
+
+# ============================================================ Phân vùng (MedSAM-LoRA, Tuần 4)
+class DiceLoss(nn.Module):
+    """Soft Dice Loss nhị phân trên logit: 1 - (2·Σ(p·g) + s) / (Σp + Σg + s), tính theo từng ảnh rồi lấy trung bình."""
+
+    def __init__(self, smooth: float = 1.0, reduction: str = "mean"):
+        super().__init__()
+        if reduction not in ("mean", "sum", "none"):
+            raise ValueError("reduction phải thuộc ('mean', 'sum', 'none')")
+        self.smooth, self.reduction = float(smooth), reduction
+
+    def forward(self, logits: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
+        p = torch.sigmoid(logits.float()).flatten(1)
+        g = targets.float().flatten(1)
+        inter = (p * g).sum(dim=1)
+        dice = (2.0 * inter + self.smooth) / (p.sum(dim=1) + g.sum(dim=1) + self.smooth)
+        loss = 1.0 - dice
+        if self.reduction == "mean":
+            return loss.mean()
+        if self.reduction == "sum":
+            return loss.sum()
+        return loss
+
+
+class BinaryFocalLoss(nn.Module):
+    """Binary Focal Loss (Lin et al., 2017) trên logit: -α_t (1 - p_t)^γ log(p_t). γ = 0 và α = None ⇒ BCE."""
+
+    def __init__(self, gamma: float = 2.0, alpha: float | None = 0.25, reduction: str = "mean"):
+        super().__init__()
+        if gamma < 0:
+            raise ValueError("gamma phải >= 0")
+        if alpha is not None and not (0.0 <= alpha <= 1.0):
+            raise ValueError("alpha phải nằm trong [0, 1] hoặc None")
+        if reduction not in ("mean", "sum", "none"):
+            raise ValueError("reduction phải thuộc ('mean', 'sum', 'none')")
+        self.gamma, self.alpha, self.reduction = float(gamma), alpha, reduction
+
+    def forward(self, logits: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
+        x, t = logits.float(), targets.float()
+        bce = F.binary_cross_entropy_with_logits(x, t, reduction="none")
+        p_t = torch.exp(-bce)
+        loss = (1.0 - p_t) ** self.gamma * bce
+        if self.alpha is not None:
+            loss = (self.alpha * t + (1.0 - self.alpha) * (1.0 - t)) * loss
+        if self.reduction == "mean":
+            return loss.mean()
+        if self.reduction == "sum":
+            return loss.sum()
+        return loss
+
+
+class SegmentationLoss(nn.Module):
+    """L_Seg = 0.5 · L_Dice + 0.5 · L_Focal (hoặc BCE) cho Mask Decoder của MedSAM-LoRA.
+
+    `mode="focal"` dùng Binary Focal Loss (mặc định γ = 2, α = 0.25); `mode="bce"` dùng Binary Cross-Entropy.
+    Trả về dict {"loss", "dice_loss", "pixel_loss"} để ghi log từng thành phần.
+    """
+
+    def __init__(self, mode: str = "focal", dice_weight: float = 0.5, pixel_weight: float = 0.5,
+                 gamma: float = 2.0, alpha: float | None = 0.25, smooth: float = 1.0):
+        super().__init__()
+        mode = mode.lower().strip()
+        if mode not in ("focal", "bce"):
+            raise ValueError("mode phải là 'focal' hoặc 'bce'")
+        self.mode, self.dice_weight, self.pixel_weight = mode, float(dice_weight), float(pixel_weight)
+        self.dice = DiceLoss(smooth=smooth)
+        self.pixel = BinaryFocalLoss(gamma=gamma, alpha=alpha) if mode == "focal" else BinaryFocalLoss(gamma=0.0, alpha=None)
+
+    def forward(self, logits: torch.Tensor, targets: torch.Tensor) -> dict[str, torch.Tensor]:
+        d = self.dice(logits, targets)
+        p = self.pixel(logits, targets)
+        return {"loss": self.dice_weight * d + self.pixel_weight * p, "dice_loss": d.detach(), "pixel_loss": p.detach()}

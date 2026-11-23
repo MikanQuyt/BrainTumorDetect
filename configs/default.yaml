@@ -47,3 +47,22 @@ auto_prompt:
   heatmap_threshold: 0.50
   alpha_layercam: 0.65
   beta_multiplicative: 0.35
+
+medsam_lora:
+  checkpoint: checkpoints/medsam_vit_b.pth
+  lora_r: 8
+  lora_alpha: 16
+  lora_dropout: 0.05
+  train_mask_decoder: true
+  loss_mode: focal                 # focal | bce
+  dice_weight: 0.5
+  pixel_weight: 0.5
+  focal_gamma: 2.0
+  focal_alpha: 0.25
+  box_jitter_px: 10.0              # Box Jittering ±10px trên hệ 1024x1024 khi huấn luyện
+  lr_lora: 1.0e-4
+  lr_decoder: 1.0e-4
+  weight_decay: 0.01
+  batch_size: 4
+  grad_accum: 4
+  epochs: 15
