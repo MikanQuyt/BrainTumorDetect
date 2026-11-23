@@ -29,19 +29,26 @@ BrainTumorDetect/
 │   ├── ds2_annotations.json
 │   ├── ds3_annotations.json
 │   └── brats2020_annotations.json
-├── models/                         # [Tuần 2 & Tuần 3] Kiến trúc Mô hình Cốt lõi
+├── models/                         # [Tuần 2, 3 & 4] Kiến trúc Mô hình Cốt lõi
 │   ├── vit_baseline.py             # [Tuần 2] ViT Baseline (Linear Probing & Full Fine-tuning)
 │   ├── sam_wrappers.py             # [Tuần 2 & 3] SamBoxSegmenter & MedSamBoxSegmenter (hỗ trợ Box & Hybrid Prompt)
 │   ├── vit_lora.py                 # [Tuần 3] Kiến trúc ViTLoRA (PEFT LoRA 12 tầng Q, V) & nhánh ViTDetBoxHead (SFP)
-│   └── auto_prompt.py              # [Tuần 3] AutoPromptGenerator (Cơ chế 1: Rollout + LayerCAM; Cơ chế 2: ViTDetBoxHead)
+│   ├── auto_prompt.py              # [Tuần 3] AutoPromptGenerator (Cơ chế 1: Rollout + LayerCAM; Cơ chế 2: ViTDetBoxHead)
+│   └── medsam_lora.py              # [Tuần 4] MedSamLoRA (đóng băng ViT-B Image/Prompt Encoder, LoRA r=8 Q/V, full Mask Decoder, Box Jittering ±10px)
 ├── utils/                          # Hàm mất mát, Chỉ số đánh giá & Kiểm tra trọng số
-│   ├── losses.py                   # Weighted CE & Focal Loss (Label Smoothing ε=0.05), GIoU Loss & BoxRegressionLoss
-│   ├── metrics.py                  # Dice, IoU, HD95, Box IoU, Pointing Game Hit Rate & Tối ưu ngưỡng τ ∈ [0.30, 0.40]
+│   ├── losses.py                   # Weighted CE & Focal Loss, GIoU + L1 BoxRegressionLoss, SegmentationLoss (0.5 Dice + 0.5 Focal/BCE)
+│   ├── metrics.py                  # Dice, IoU, HD95, Box IoU, Pointing Game Accuracy & Tối ưu ngưỡng τ ∈ [0.35, 0.40]
 │   └── checkpoints.py              # Xác thực MD5 checkpoint SAM & MedSAM
 ├── engine/                         # Pipeline Huấn luyện & Đánh giá Hợp nhất
 │   ├── train_vit.py                # Huấn luyện ViT Baseline (Tuần 2)
 │   ├── eval_sam.py                 # Đánh giá Zero-shot SAM / MedSAM với Oracle Box (Tuần 2)
-│   └── train_vit_lora.py           # Huấn luyện & đánh giá ViT-LoRA + ViTDetBoxHead + AutoPromptGenerator (Tuần 3)
+│   ├── train_vit_lora.py           # Huấn luyện & đánh giá ViT-LoRA + ViTDetBoxHead + AutoPromptGenerator (Tuần 3)
+│   ├── train_vit_lora_huy.py       # Pipeline huấn luyện/đánh giá DS1 (5-Fold CV) & DS2 có resume theo epoch (Tuần 3)
+│   └── train_medsam_lora.py        # Huấn luyện MedSAM-LoRA (r=8) với L_Seg = 0.5 L_Dice + 0.5 L_Focal/BCE & Box Jittering ±10px (Tuần 4)
+├── notebooks/                      # Notebook Google Colab sạch output, sẵn sàng chạy GPU
+│   ├── train.ipynb                                  # [Tuần 3] DS1 (5-Fold CV) & DS2 + Threshold Moving + Localization (Huy)
+│   ├── Week3_ViT_LoRA_BRISC2025_Ablation_Colab.ipynb # [Tuần 3] BRISC 2025 Binary/Multiclass + Ablation r ∈ {4,8,16,32} vs Full FT (Hải)
+│   └── Week3_ViT_LoRA_BraTS2020_Colab.ipynb         # [Tuần 3] BraTS2020 3-kênh [FLAIR, T1ce, T2] vs 1-kênh T1ce (Bảo)
 ├── eval/                           # Kịch bản Đánh giá & Kiểm định Thống kê Zero-shot SAM vs MedSAM (Tuần 2)
 │   ├── zeroshot_oracle_eval.py
 │   ├── make_ds2_val_split.py
@@ -55,12 +62,12 @@ BrainTumorDetect/
 ├── image/                          # Toàn bộ Ảnh Kết quả Thực nghiệm chia theo từng Tuần
 │   ├── tuan1/                      # 17 biểu đồ/lưới ảnh tiền xử lý & EDA Tuần 1 + 9 ảnh mẫu DS3
 │   ├── tuan2/                      # 13 biểu đồ/lưới ảnh ViT Baseline, Zero-shot MedSAM & 50 ảnh SAM Everything
-│   └── tuan3/                      # 3 hình tổng hợp kết quả ViT-LoRA & Auto-Prompt Generator Tuần 3
+│   └── tuan3/                      # Biểu đồ ViT-LoRA & Auto-Prompt Generator (gồm thư mục con huy/)
 ├── reports/                        # Báo cáo, Bảng số liệu (.csv, .json, .md) chia theo từng Tuần
 │   ├── tuan1/                      # build_ds1_ds2, build_ds3, build_ds4, eda_ds1_ds2, eda_ds3, eda_ds4
 │   ├── tuan2/                      # vit_baseline, brisc2025, week2 (Zero-shot SAM vs MedSAM)
-│   └── tuan3/                      # vit_lora_auto_prompt (week3_hnnq_metrics.json)
-└── tests/                          # Bộ Unit Tests tự động (52+ tests kiểm định toàn bộ pipeline Tuần 1, 2, 3)
+│   └── tuan3/                      # vit_lora_auto_prompt, vit_lora_huy, vit_lora_hai, vit_lora_bao
+└── tests/                          # Bộ Unit Tests tự động (74 tests kiểm định toàn bộ pipeline Tuần 1–4)
 ```
 
 ---
@@ -87,7 +94,7 @@ BrainTumorDetect/
 ## 3. Hướng dẫn Chạy Kiểm thử & Huấn luyện Toàn Hệ thống
 
 ```powershell
-# 1. Chạy toàn bộ bộ kiểm thử tự động (Unit Tests Tuần 1, 2, 3)
+# 1. Chạy toàn bộ bộ kiểm thử tự động (74 Unit Tests Tuần 1–4)
 .\venv\Scripts\python.exe -m unittest discover -s tests -v
 
 # 2. Huấn luyện ViT-LoRA (r=8, α=16) + ViTDetBoxHead trên toàn bộ hệ thống đa bộ dữ liệu (DS1, DS2, DS3, DS4)
@@ -99,6 +106,9 @@ BrainTumorDetect/
 # 4. Đánh giá Zero-shot SAM vs MedSAM với Oracle Box trên các bộ dữ liệu có nhãn Mask (DS2, DS3, DS4)
 .\venv\Scripts\python.exe -m engine.eval_sam --datasets indk214 brisc2025 brats2020 --split test --out runs/eval_sam_all
 
-# 5. Sinh bộ ảnh kết quả trực quan Tuần 3 vào image/tuan3/
+# 5. Huấn luyện MedSAM-LoRA (r=8, α=16, L_Seg = 0.5 L_Dice + 0.5 L_Focal/BCE, Box Jittering ±10px) — Tuần 4
+.\venv\Scripts\python.exe -m engine.train_medsam_lora --datasets indk214 brisc2025 brats2020 --lora-r 8 --lora-alpha 16 --second-loss focal --box-jitter-px 10 --out runs/medsam_lora_all
+
+# 6. Sinh bộ ảnh kết quả trực quan Tuần 3 vào image/tuan3/
 .\venv\Scripts\python.exe experiments/generate_week3_hnnq_visuals.py
 ```
