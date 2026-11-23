@@ -13,10 +13,11 @@ from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.oxml import parse_xml, OxmlElement
 from docx.oxml.ns import nsdecls, qn
 
-ARTIFACT_DIR = Path(r"C:\Users\us\.gemini\antigravity\brain\c4eef519-48f6-4c77-8776-780b132c6803")
-FIGURES_DIR  = ARTIFACT_DIR / "figures"
-PROJECT_DIR  = Path(r"C:\Users\us\.gemini\antigravity\scratch\brisc2025_experiments")
-RESULTS_DIR  = PROJECT_DIR / "results"
+REPO_ROOT    = Path(__file__).resolve().parents[2]
+ARTIFACT_DIR = Path(os.environ.get("BRISC_REPORT_DIR", str(REPO_ROOT / "reports" / "tuan2" / "brisc2025")))
+FIGURES_DIR  = Path(os.environ.get("BRISC_FIGURES_DIR", str(REPO_ROOT / "image" / "tuan2")))
+PROJECT_DIR  = REPO_ROOT
+RESULTS_DIR  = ARTIFACT_DIR
 
 def set_cell_background(cell, fill_hex):
     tcPr = cell._element.get_or_add_tcPr()

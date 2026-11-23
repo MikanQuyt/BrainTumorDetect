@@ -68,19 +68,19 @@ BrainTumorDetect/
 ## 2. Hình ảnh Kết quả Nổi bật theo Từng Tuần (`image/`)
 
 ### Tuần 1 (`image/tuan1/`) — Chuẩn hóa 4 Bộ dữ liệu & Phân tích Khám phá (EDA)
-- [fig1_multi_dataset_preprocessing_flowchart.png](file:///c:/Users/MikanQuyt/BrainTumorDetect/image/tuan1/fig1_multi_dataset_preprocessing_flowchart.png): Sơ đồ khối quy trình tiền xử lý đa bộ dữ liệu (Cắt hộp sọ + CLAHE + Chuẩn hóa đa xung BraTS2020).
-- [fig2_four_datasets_class_distribution.png](file:///c:/Users/MikanQuyt/BrainTumorDetect/image/tuan1/fig2_four_datasets_class_distribution.png): Phân bố các lớp bệnh lý trên 4 bộ dữ liệu (`DS1` – `DS4`).
-- [ds1_ds2_check_samples.png](file:///c:/Users/MikanQuyt/BrainTumorDetect/image/tuan1/ds1_ds2_check_samples.png), [ds3_check_samples.png](file:///c:/Users/MikanQuyt/BrainTumorDetect/image/tuan1/ds3_check_samples.png), [ds4_check_samples.png](file:///c:/Users/MikanQuyt/BrainTumorDetect/image/tuan1/ds4_check_samples.png): Minh họa trực quan kết quả cắt hộp sọ, tăng tương phản CLAHE và hộp giới hạn chuẩn.
+- [fig1_multi_dataset_preprocessing_flowchart.png](image/tuan1/fig1_multi_dataset_preprocessing_flowchart.png): Sơ đồ khối quy trình tiền xử lý đa bộ dữ liệu (Cắt hộp sọ + CLAHE + Chuẩn hóa đa xung BraTS2020).
+- [fig2_four_datasets_class_distribution.png](image/tuan1/fig2_four_datasets_class_distribution.png): Phân bố các lớp bệnh lý trên 4 bộ dữ liệu (`DS1` – `DS4`).
+- [ds1_ds2_check_samples.png](image/tuan1/ds1_ds2_check_samples.png), [ds3_check_samples.png](image/tuan1/ds3_check_samples.png), [ds4_check_samples.png](image/tuan1/ds4_check_samples.png): Minh họa trực quan kết quả cắt hộp sọ, tăng tương phản CLAHE và hộp giới hạn chuẩn.
 
 ### Tuần 2 (`image/tuan2/`) — ViT Baseline, Zero-shot SAM vs MedSAM & SAM Everything Mode
-- [vit_ds1_full_finetune_loss.png](file:///c:/Users/MikanQuyt/BrainTumorDetect/image/tuan2/vit_ds1_full_finetune_loss.png) & [vit_ds2_learning_curves.png](file:///c:/Users/MikanQuyt/BrainTumorDetect/image/tuan2/vit_ds2_learning_curves.png): Bằng chứng thực nghiệm về hiện tượng Overfitting trên DS1 khi Full Fine-tuning và giới hạn `Recall < 88%` khi Linear Probing.
-- [medsam_oracle_box_brisc2025_qualitative_grid.png](file:///c:/Users/MikanQuyt/BrainTumorDetect/image/tuan2/medsam_oracle_box_brisc2025_qualitative_grid.png) & [zeroshot_sam_vs_medsam_dice_boxplot.png](file:///c:/Users/MikanQuyt/BrainTumorDetect/image/tuan2/zeroshot_sam_vs_medsam_dice_boxplot.png): Đánh giá Zero-shot MedSAM (`medsam_vit_b.pth`) và SAM gốc với Oracle Box trên DS2, DS3, DS4.
-- [sam_everything_summary_figure.png](file:///c:/Users/MikanQuyt/BrainTumorDetect/image/tuan2/sam_everything_summary_figure.png): Kiểm thử `SAM Everything Mode` trên 50 ảnh chứng minh `89,77%` mask tự động bắt nhầm xương sọ và mô não lành khi thiếu nhánh định vị ViT.
+- [vit_ds1_full_finetune_loss.png](image/tuan2/vit_ds1_full_finetune_loss.png) & [vit_ds2_learning_curves.png](image/tuan2/vit_ds2_learning_curves.png): Bằng chứng thực nghiệm về hiện tượng Overfitting trên DS1 khi Full Fine-tuning và giới hạn `Recall < 88%` khi Linear Probing.
+- [medsam_oracle_box_brisc2025_qualitative_grid.png](image/tuan2/medsam_oracle_box_brisc2025_qualitative_grid.png) & [zeroshot_sam_vs_medsam_dice_boxplot.png](image/tuan2/zeroshot_sam_vs_medsam_dice_boxplot.png): Đánh giá Zero-shot MedSAM (`medsam_vit_b.pth`) và SAM gốc với Oracle Box trên DS2, DS3, DS4.
+- [sam_everything_summary_figure.png](image/tuan2/sam_everything_summary_figure.png): Kiểm thử `SAM Everything Mode` trên 50 ảnh chứng minh `89,77%` mask tự động bắt nhầm xương sọ và mô não lành khi thiếu nhánh định vị ViT.
 
 ### Tuần 3 (`image/tuan3/`) — Kiến trúc `ViT-LoRA` & Bộ Tự sinh Lời nhắc (`Auto-Prompt Generator`)
-- [fig1_lora_params_and_training_curves.png](file:///c:/Users/MikanQuyt/BrainTumorDetect/image/tuan3/fig1_lora_params_and_training_curves.png): Đối sánh tham số LoRA $r \in \{4, 8, 16, 32\}$ (`r=8` chỉ chiếm `0,34%` backbone; tổng tham số `< 1%`) và hội tụ `Focal Loss (ε=0.05)` + `GIoU + L1 Box Loss`.
-- [fig2_mechanism1_rollout_layercam_ds1.png](file:///c:/Users/MikanQuyt/BrainTumorDetect/image/tuan3/fig2_mechanism1_rollout_layercam_ds1.png): Cơ chế (1) kết hợp `Attention Rollout + LayerCAM` + Lọc viền sọ sinh `Hybrid Prompt` trên Dataset 1 (`Navoneel`).
-- [fig3_mechanism2_vitdet_box_head_ds2_ds3_ds4.png](file:///c:/Users/MikanQuyt/BrainTumorDetect/image/tuan3/fig3_mechanism2_vitdet_box_head_ds2_ds3_ds4.png): Cơ chế (2) `ViTDetBoxHead` dẫn đường cho `MedSAM` trên DS2 (`Dice = 93,86%`), DS3 (`Dice = 87,31%`), DS4 (`Dice = 78,24%`).
+- [fig1_lora_params_and_training_curves.png](image/tuan3/fig1_lora_params_and_training_curves.png): Đối sánh tham số LoRA $r \in \{4, 8, 16, 32\}$ (`r=8` chỉ chiếm `0,34%` backbone; tổng tham số `< 1%`) và hội tụ `Focal Loss (ε=0.05)` + `GIoU + L1 Box Loss`.
+- [fig2_mechanism1_rollout_layercam_ds1.png](image/tuan3/fig2_mechanism1_rollout_layercam_ds1.png): Cơ chế (1) kết hợp `Attention Rollout + LayerCAM` + Lọc viền sọ sinh `Hybrid Prompt` trên Dataset 1 (`Navoneel`).
+- [fig3_mechanism2_vitdet_box_head_ds2_ds3_ds4.png](image/tuan3/fig3_mechanism2_vitdet_box_head_ds2_ds3_ds4.png): Cơ chế (2) `ViTDetBoxHead` dẫn đường cho `MedSAM` trên DS2 (`Dice = 93,86%`), DS3 (`Dice = 87,31%`), DS4 (`Dice = 78,24%`).
 
 ---
 

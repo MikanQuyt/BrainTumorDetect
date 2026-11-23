@@ -146,8 +146,8 @@ Kết quả đã hoàn tất về mặt chạy và đánh giá. **Mục tiêu Re
 ## 9. File bàn giao và bước tiếp theo
 
 - Code train: `engine/train_vit_lora_huy.py`; notebook: `notebooks/train.ipynb`; requirements và hướng dẫn trong `experiments/`.
-- Checkpoint: [DS1 trên Drive](https://drive.google.com/drive/folders/18WqnGWtq_huJ0GNi7-Bu143GDjgXWCVo), [DS2 trên Drive](https://drive.google.com/drive/folders/1rsnwMCW9XPLIZDaOF2FmHrPoPO9QO6cO).
-- Notebook đã chạy: [train.ipynb trên Colab](https://colab.research.google.com/drive/1UAMNSZLKNuDPqYomL6-NNpP4BiXdFMxf). Bản trong repo được giữ sạch output, hỗ trợ hosted/local và dùng lại checkpoint.
+- Checkpoint: lưu trữ nội bộ nhóm trên Google Drive (`Huy/tuan3/ds1` và `Huy/tuan3/ds2`, không đưa lên Git).
+- Notebook đã chạy: xem bản sạch output trong `notebooks/train.ipynb` (hỗ trợ Google Colab và local runtime, tự động resume checkpoint).
 - Raw CSV/JSON và môi trường nằm trong `results/` của báo cáo; biểu đồ nằm trong `image/tuan3/huy/`.
 
 Trước khi đưa vào GitHub, kiểm tra `git status` ở repo đang làm việc của Huy, lấy `dev` mới nhất và chỉ áp dụng file thuộc phần Huy. Không chép toàn bộ source snapshot đè lên repo mới của nhóm. Checkpoint và dataset giữ trên Drive/đĩa dữ liệu, không đưa vào Git.
