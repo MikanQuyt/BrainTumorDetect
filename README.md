@@ -46,9 +46,10 @@ BrainTumorDetect/
 │   ├── train_vit_lora_huy.py       # Pipeline huấn luyện/đánh giá DS1 (5-Fold CV) & DS2 có resume theo epoch (Tuần 3)
 │   └── train_medsam_lora.py        # Huấn luyện MedSAM-LoRA (r=8) với L_Seg = 0.5 L_Dice + 0.5 L_Focal/BCE & Box Jittering ±10px (Tuần 4)
 ├── notebooks/                      # Notebook Google Colab sạch output, sẵn sàng chạy GPU
-│   ├── train.ipynb                                  # [Tuần 3] DS1 (5-Fold CV) & DS2 + Threshold Moving + Localization (Huy)
+│   ├── Week3_ViT-LoRA_DS12.ipynb                     # [Tuần 3] DS1 (5-Fold CV) & DS2 + Threshold Moving + Localization (Huy)
 │   ├── Week3_ViT_LoRA_BRISC2025_Ablation_Colab.ipynb # [Tuần 3] BRISC 2025 Binary/Multiclass + Ablation r ∈ {4,8,16,32} vs Full FT (Hải)
-│   └── Week3_ViT_LoRA_BraTS2020_Colab.ipynb         # [Tuần 3] BraTS2020 3-kênh [FLAIR, T1ce, T2] vs 1-kênh T1ce (Bảo)
+│   ├── Week3_ViT_LoRA_BraTS2020_Colab.ipynb          # [Tuần 3] BraTS2020 3-kênh [FLAIR, T1ce, T2] vs 1-kênh T1ce (Bảo)
+│   └── Week4_MedSAM_LoRA_Colab.ipynb                 # [Tuần 4] Huấn luyện & đánh giá MedSAM-LoRA (r=8, Dice+Focal/BCE, Box Jittering ±10px)
 ├── eval/                           # Kịch bản Đánh giá & Kiểm định Thống kê Zero-shot SAM vs MedSAM (Tuần 2)
 │   ├── zeroshot_oracle_eval.py
 │   ├── make_ds2_val_split.py
@@ -107,7 +108,7 @@ BrainTumorDetect/
 .\venv\Scripts\python.exe -m engine.eval_sam --datasets indk214 brisc2025 brats2020 --split test --out runs/eval_sam_all
 
 # 5. Huấn luyện MedSAM-LoRA (r=8, α=16, L_Seg = 0.5 L_Dice + 0.5 L_Focal/BCE, Box Jittering ±10px) — Tuần 4
-.\venv\Scripts\python.exe -m engine.train_medsam_lora --datasets indk214 brisc2025 brats2020 --lora-r 8 --lora-alpha 16 --second-loss focal --box-jitter-px 10 --out runs/medsam_lora_all
+.\venv\Scripts\python.exe -m engine.train_medsam_lora --datasets indk214 brisc2025 brats2020 --lora-r 8 --lora-alpha 16 --loss-mode focal --box-jitter 10 --amp --out runs/medsam_lora_all
 
 # 6. Sinh bộ ảnh kết quả trực quan Tuần 3 vào image/tuan3/
 .\venv\Scripts\python.exe experiments/generate_week3_hnnq_visuals.py

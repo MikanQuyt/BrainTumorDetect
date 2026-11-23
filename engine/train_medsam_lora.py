@@ -211,6 +211,8 @@ def main(argv=None):
     ap.add_argument("--workers", type=int, default=0)
     ap.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
     ap.add_argument("--amp", action="store_true")
+    ap.add_argument("--resume", choices=["auto", "never"], default="auto",
+                    help="Tự động khôi phục từ latest_medsam_lora.pt nếu có (mặc định: auto)")
     ap.add_argument("--seed", type=int, default=42)
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--out", "--out-dir", dest="out", required=True)
@@ -277,8 +279,34 @@ def main(argv=None):
     )
 
     history, best_dice, best_state, best_epoch, bad = [], -1.0, None, 0, 0
+    start_epoch = 1
+    elapsed_offset = 0.0
+    latest_path = out_dir / "latest_medsam_lora.pt"
+    if args.resume == "auto" and latest_path.is_file():
+        ck = torch.load(latest_path, map_location="cpu", weights_only=False)
+        model.load_state_dict(ck["model_state"], strict=False)
+        optimizer.load_state_dict(ck["optimizer"])
+        sched.load_state_dict(ck["scheduler"])
+        if scaler is not None and ck.get("scaler") is not None:
+            scaler.load_state_dict(ck["scaler"])
+        start_epoch = int(ck["epoch"]) + 1
+        best_dice = float(ck["best_dice"])
+        best_epoch = int(ck["best_epoch"])
+        bad = int(ck["bad"])
+        best_state = ck["best_state"]
+        history = list(ck.get("history", []))
+        elapsed_offset = float(history[-1]["seconds"]) if history else 0.0
+        print(
+            f"[RESUME] Khôi phục từ {latest_path.name}: tiếp tục từ epoch {start_epoch}/{args.epochs} "
+            f"(best_epoch={best_epoch}, best_val_dice={best_dice:.4f}, bad={bad}/{args.patience})",
+            flush=True,
+        )
+
     t0 = time.time()
-    for epoch in range(1, args.epochs + 1):
+    for epoch in range(start_epoch, args.epochs + 1):
+        if args.patience and bad >= args.patience:
+            print(f"Đã đạt ngưỡng dừng sớm trước đó tại epoch {start_epoch - 1} (best epoch {best_epoch}).")
+            break
         tr = run_epoch(
             model,
             train_loader,
@@ -315,7 +343,7 @@ def main(argv=None):
             "val_dice": va["dice"],
             "val_iou": va["iou"],
             "val_hd95": va["hd95"],
-            "seconds": round(time.time() - t0, 1),
+            "seconds": round(elapsed_offset + (time.time() - t0), 1),
         }
         history.append(row)
         print(
@@ -330,15 +358,38 @@ def main(argv=None):
             model.save_checkpoint(out_dir / "best_medsam_lora.pt", extra={"epoch": epoch, "val_dice": va["dice"]})
         else:
             bad += 1
-            if args.patience and bad >= args.patience:
-                print(f"Dừng sớm tại epoch {epoch} (best epoch {best_epoch}).")
-                break
 
-    with open(out_dir / "history.csv", "w", newline="", encoding="utf-8") as f:
-        w = csv.DictWriter(f, fieldnames=list(history[0]), lineterminator="\n")
-        w.writeheader()
-        w.writerows(history)
+        # Lưu lịch sử & checkpoint resume sau mỗi epoch để an toàn trên Google Colab
+        with open(out_dir / "history.csv", "w", newline="", encoding="utf-8") as f:
+            w = csv.DictWriter(f, fieldnames=list(history[0]), lineterminator="\n")
+            w.writeheader()
+            w.writerows(history)
+        tmp_latest = latest_path.with_suffix(".pt.tmp")
+        torch.save(
+            {
+                "epoch": epoch,
+                "best_dice": best_dice,
+                "best_epoch": best_epoch,
+                "bad": bad,
+                "model_state": model.trainable_state_dict(),
+                "best_state": best_state,
+                "optimizer": optimizer.state_dict(),
+                "scheduler": sched.state_dict(),
+                "scaler": scaler.state_dict() if scaler is not None else None,
+                "history": history,
+                "lora_r": args.lora_r,
+                "lora_alpha": args.lora_alpha,
+            },
+            tmp_latest,
+        )
+        tmp_latest.replace(latest_path)
 
+        if args.patience and bad >= args.patience:
+            print(f"Dừng sớm tại epoch {epoch} (best epoch {best_epoch}).")
+            break
+
+    if best_state is None:
+        best_state = model.trainable_state_dict()
     model.load_state_dict(best_state, strict=False)
     test_res = run_epoch(
         model,

@@ -1,6 +1,6 @@
 # BÁO CÁO TUẦN 3 — Lâm Gia Bảo (Dataset 4: BraTS2020)
 
-> **Notebook Colab huấn luyện & đối sánh thực nghiệm (đã sửa lỗi):** [`notebooks/Week3_ViT_LoRA_BraTS2020_Colab.ipynb`](../../../notebooks/Week3_ViT_LoRA_BraTS2020_Colab.ipynb)
+> **Notebook huấn luyện & đối sánh thực nghiệm:** [`notebooks/Week3_ViT_LoRA_BraTS2020_Colab.ipynb`](../../../notebooks/Week3_ViT_LoRA_BraTS2020_Colab.ipynb)
 
 ## Nhiệm vụ Tuần 3
 1. Huấn luyện **ViT-LoRA + Box Regression Head (`ViTDetBoxHead`)** trên tập lát cắt đa phương thức **Dataset 4 (BraTS2020)**.
@@ -15,7 +15,7 @@
 |---|---|
 | **Backbone** | `google/vit-base-patch16-224-in21k` (ViT-Base/16, 12 tầng Attention, `85,80M` tham số đóng băng) |
 | **PEFT LoRA** | `r = 8`, `α = 16`, `dropout = 0.1` gắn vào `query` và `value` của cả 12 tầng Self-Attention (`294.912` tham số = `0,34%` backbone) |
-| **Classification Head** | Bài toán nhị phân 2 lớp (`0: no_tumor`, `1: tumor / glioma`) — khắc phục hoàn toàn lỗi lớp rỗng khi huấn luyện riêng trên BraTS2020 |
+| **Classification Head** | Bài toán nhị phân 2 lớp (`0: no_tumor`, `1: tumor / glioma`) |
 | **Box Regression Head** | `ViTDetBoxHead` (Simple Feature Pyramid `14×14 -> 28×28`, Spatial Attention Pooling + MLP $\rightarrow$ `[x_min, y_min, x_max, y_max]` chuẩn hóa) |
 | **Tổng tham số khả huấn** | **`< 1%`** tổng tham số mô hình (`LoRA + Classification Head + ViTDetBoxHead`) |
 
