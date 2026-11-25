@@ -15,7 +15,8 @@ from torch import nn
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from models.medsam_lora import LoRAQKV, MedSamLoRA, jitter_boxes  # noqa: E402
+from engine.train_medsam_lora import run_epoch  # noqa: E402
+from models.medsam_lora import LoRAQKV, MedSamLoRA, extract_peak_points, jitter_boxes  # noqa: E402
 from utils.losses import BinaryFocalLoss, DiceLoss, SegmentationLoss  # noqa: E402
 
 
@@ -60,6 +61,8 @@ class _DummyPromptEncoder(nn.Module):
         super().__init__()
         self.pe = nn.Parameter(torch.zeros(1, out_ch, grid, grid))
         self.box_proj = nn.Linear(4, out_ch)
+        self.pt_proj = nn.Linear(2, out_ch)
+        self.seen_points_count = 0
 
     def get_dense_pe(self) -> torch.Tensor:
         return self.pe
@@ -67,6 +70,11 @@ class _DummyPromptEncoder(nn.Module):
     def forward(self, points=None, boxes=None, masks=None):
         bs = boxes.shape[0]
         sparse = self.box_proj(boxes)  # (B, 1, out_ch)
+        if points is not None:
+            coords, _labels = points
+            self.seen_points_count += int(coords.shape[1])
+            pt_emb = self.pt_proj(coords.float())
+            sparse = torch.cat([pt_emb, sparse], dim=1)
         dense = torch.zeros(bs, self.pe.shape[1], self.pe.shape[2], self.pe.shape[3], device=boxes.device)
         return sparse, dense
 
@@ -271,6 +279,94 @@ class TestSegmentationLossesAndBoxJittering(unittest.TestCase):
 
         # max_px=0 trả nguyên hộp
         self.assertTrue(torch.equal(jitter_boxes(boxes, max_px=0.0), boxes))
+
+
+class TestHybridPromptAndPerClassEval(unittest.TestCase):
+    def test_extract_peak_points_bright_dark_and_constant(self):
+        # 1. Ảnh có khối u tăng sáng (bright) ở vùng phải-trên bên trong box
+        img_bright = torch.full((1, 3, 64, 64), 0.25)
+        img_bright[:, :, 18:28, 36:46] = 0.95
+        box_b = torch.tensor([[12.0, 12.0, 52.0, 52.0]])
+
+        # 2. Ảnh có khối u giảm sáng (hypointense) ở vùng trái-dưới bên trong box
+        img_dark = torch.full((1, 3, 64, 64), 0.70)
+        img_dark[:, :, 34:46, 18:30] = 0.05
+
+        # 3. Ảnh đồng nhất (không nhiễu): trả về tâm hộp
+        img_const = torch.zeros((1, 3, 64, 64))
+
+        imgs = torch.cat([img_bright, img_dark, img_const], dim=0)
+        boxes = box_b.repeat(3, 1)
+
+        coords, labels = extract_peak_points(imgs, boxes, inner_margin=0.10)
+        self.assertEqual(tuple(coords.shape), (3, 1, 2))
+        self.assertEqual(tuple(labels.shape), (3, 1))
+        self.assertTrue((labels == 1).all())
+        self.assertFalse(torch.isnan(coords).any())
+
+        # Nằm gọn trong hộp
+        for i in range(3):
+            self.assertGreaterEqual(float(coords[i, 0, 0]), 12.0)
+            self.assertLessEqual(float(coords[i, 0, 0]), 52.0)
+            self.assertGreaterEqual(float(coords[i, 0, 1]), 12.0)
+            self.assertLessEqual(float(coords[i, 0, 1]), 52.0)
+
+        # Kiểm tra đúng vị trí lõi u sáng & lõi u tối
+        self.assertGreater(float(coords[0, 0, 0]), 32.0)
+        self.assertLess(float(coords[0, 0, 1]), 32.0)
+        self.assertLess(float(coords[1, 0, 0]), 32.0)
+        self.assertGreater(float(coords[1, 0, 1]), 32.0)
+
+    def test_hybrid_prompt_forward_and_per_class_eval_breakdown(self):
+        from torch.utils.data import DataLoader, Dataset
+
+        class _MockSegDataset(Dataset):
+            def __len__(self):
+                return 6
+
+            def __getitem__(self, idx):
+                sub = [1, 1, 2, 2, 3, 3][idx]  # glioma, meningioma, pituitary
+                img = torch.rand(3, 32, 32)
+                msk = torch.zeros(32, 32, dtype=torch.long)
+                msk[8:24, 8:24] = 1
+                return {
+                    "image_1024": img,
+                    "gt_box": torch.tensor([6.0, 6.0, 26.0, 26.0]),
+                    "gt_mask": msk,
+                    "has_box": torch.tensor(True),
+                    "has_mask": torch.tensor(True),
+                    "sub_class_label": torch.tensor(sub, dtype=torch.long),
+                }
+
+        loader = DataLoader(_MockSegDataset(), batch_size=2, shuffle=False)
+        sam = _DummySam(dim=32, depth=12, out_ch=16, grid=8)
+        model = MedSamLoRA(sam, lora_r=8, lora_alpha=16.0)
+        crit = SegmentationLoss(mode="focal", dice_weight=0.5, pixel_weight=0.5)
+
+        # 1. Box-only eval
+        res_box = run_epoch(
+            model, loader, crit, "cpu", prompt_mode="box", compute_hd95=True, compute_per_class=True, desc="test-box"
+        )
+        self.assertEqual(sam.prompt_encoder.seen_points_count, 0)
+        self.assertEqual(res_box["prompt_mode"], "box")
+        self.assertEqual(set(res_box["per_class"].keys()), {"glioma", "meningioma", "pituitary"})
+        self.assertEqual(res_box["per_class"]["glioma"]["n"], 2)
+
+        # 2. Hybrid (Box + Peak Point) eval & train
+        res_hyb = run_epoch(
+            model, loader, crit, "cpu", prompt_mode="hybrid", compute_hd95=True, compute_per_class=True, desc="test-hybrid"
+        )
+        self.assertEqual(sam.prompt_encoder.seen_points_count, 6)
+        self.assertEqual(res_hyb["prompt_mode"], "hybrid")
+        self.assertEqual(set(res_hyb["per_class"].keys()), {"glioma", "meningioma", "pituitary"})
+
+        # Hybrid training step updates LoRA + Decoder without error
+        opt = torch.optim.AdamW(model.param_groups(lr_lora=1e-3, lr_decoder=1e-3))
+        res_tr = run_epoch(
+            model, loader, crit, "cpu", optimizer=opt, box_jitter_px=4.0, prompt_mode="hybrid", desc="train-hybrid"
+        )
+        self.assertEqual(res_tr["n"], 6)
+        self.assertGreater(res_tr["loss"], 0.0)
 
 
 if __name__ == "__main__":
