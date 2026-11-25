@@ -85,10 +85,17 @@ BrainTumorDetect/
 - [medsam_oracle_box_brisc2025_qualitative_grid.png](image/tuan2/medsam_oracle_box_brisc2025_qualitative_grid.png) & [zeroshot_sam_vs_medsam_dice_boxplot.png](image/tuan2/zeroshot_sam_vs_medsam_dice_boxplot.png): Đánh giá Zero-shot MedSAM (`medsam_vit_b.pth`) và SAM gốc với Oracle Box trên DS2, DS3, DS4.
 - [sam_everything_summary_figure.png](image/tuan2/sam_everything_summary_figure.png): Kiểm thử `SAM Everything Mode` trên 50 ảnh chứng minh `89,77%` mask tự động bắt nhầm xương sọ và mô não lành khi thiếu nhánh định vị ViT.
 
-### Tuần 3 (`image/tuan3/`) — Kiến trúc `ViT-LoRA` & Bộ Tự sinh Lời nhắc (`Auto-Prompt Generator`)
-- [fig1_lora_params_and_training_curves.png](image/tuan3/fig1_lora_params_and_training_curves.png): Đối sánh tham số LoRA $r \in \{4, 8, 16, 32\}$ (`r=8` chỉ chiếm `0,34%` backbone; tổng tham số `< 1%`) và hội tụ `Focal Loss (ε=0.05)` + `GIoU + L1 Box Loss`.
-- [fig2_mechanism1_rollout_layercam_ds1.png](image/tuan3/fig2_mechanism1_rollout_layercam_ds1.png): Cơ chế (1) kết hợp `Attention Rollout + LayerCAM` + Lọc viền sọ sinh `Hybrid Prompt` trên Dataset 1 (`Navoneel`).
-- [fig3_mechanism2_vitdet_box_head_ds2_ds3_ds4.png](image/tuan3/fig3_mechanism2_vitdet_box_head_ds2_ds3_ds4.png): Cơ chế (2) `ViTDetBoxHead` dẫn đường cho `MedSAM` trên DS2 (`Dice = 93,86%`), DS3 (`Dice = 87,31%`), DS4 (`Dice = 78,24%`).
+### Tuần 3 (`image/tuan3/` & `reports/tuan3/`) — Huấn luyện `ViT-LoRA` & Ablation Study Hạng LoRA ($r \in \{4, 8, 16, 32\}$)
+- **Báo cáo Khoa học Tuần 3**: [BAO_CAO_TUAN3.md](file:///E:/archive/BrainTumorDetect/reports/tuan3/BAO_CAO_TUAN3.md) & Bản Word in màu y khoa [BRISC2025_LoRA_Experiments.docx](file:///E:/archive/BrainTumorDetect/reports/tuan3/BRISC2025_LoRA_Experiments.docx).
+- **Google Colab Notebook Tuần 3**: Mở và chạy trực tiếp trên Google Colab GPU:  
+  [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/MikanQuyt/BrainTumorDetect/blob/Nguyen_Thanh_Hai_tuan3/notebooks/week3_vit_lora_brisc2025_colab.ipynb)  
+  → [notebooks/week3_vit_lora_brisc2025_colab.ipynb](notebooks/week3_vit_lora_brisc2025_colab.ipynb)
+- [fig1_ablation_multiclass_rank_study.png](file:///E:/archive/BrainTumorDetect/image/tuan3/fig1_ablation_multiclass_rank_study.png): Khảo sát đối sánh 4 cấu hình $r \in \{4, 8, 16, 32\}$ vs Full Fine-tuning trên BRISC 2025 đa lớp (F1, Accuracy, Tham số, Tốc độ hội tụ).
+- [fig2_ablation_binary_rank_study.png](file:///E:/archive/BrainTumorDetect/image/tuan3/fig2_ablation_binary_rank_study.png): Khảo sát bài toán phân loại nhị phân Có u / Không u (Độ nhạy Sensitivity 97.22%, Độ đặc hiệu 85.08%, ROC-AUC 0.9785).
+- [fig3_radar_comparison_architectures.png](file:///E:/archive/BrainTumorDetect/image/tuan3/fig3_radar_comparison_architectures.png): Biểu đồ Radar đối chiếu 6 chiều hiệu năng giữa Linear Probing, Full Fine-tuning và ViT-LoRA ($r=8$).
+- [fig1_lora_params_and_training_curves.png](file:///E:/archive/BrainTumorDetect/image/tuan3/fig1_lora_params_and_training_curves.png): Đối sánh tham số LoRA $r \in \{4, 8, 16, 32\}$ (`r=8` chỉ chiếm `0,34%` backbone; tổng tham số `< 1%`) và hội tụ `Focal Loss (ε=0.05)` + `GIoU + L1 Box Loss`.
+- [fig2_mechanism1_rollout_layercam_ds1.png](file:///E:/archive/BrainTumorDetect/image/tuan3/fig2_mechanism1_rollout_layercam_ds1.png): Cơ chế (1) kết hợp `Attention Rollout + LayerCAM` + Lọc viền sọ sinh `Hybrid Prompt` trên Dataset 1 (`Navoneel`).
+- [fig3_mechanism2_vitdet_box_head_ds2_ds3_ds4.png](file:///E:/archive/BrainTumorDetect/image/tuan3/fig3_mechanism2_vitdet_box_head_ds2_ds3_ds4.png): Cơ chế (2) `ViTDetBoxHead` dẫn đường cho `MedSAM` trên DS2 (`Dice = 93,86%`), DS3 (`Dice = 87,31%`), DS4 (`Dice = 78,24%`).
 
 ---
 
