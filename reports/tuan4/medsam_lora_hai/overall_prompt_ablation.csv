@@ -1,0 +1,4 @@
+Mô hình,Chiến lược Prompt,Box Jitter Eval,Số mẫu,Dice Mean (%),Dice SD (%),Dice Median (%),IoU Mean (%),HD95 Mean (px),HD95 Median (px)
+Zero-shot MedSAM (Baseline),Box-only,0px (Oracle Box),719,88.54,9.91,91.33,80.6,21.51,15.56
+MedSAM-LoRA (r=8),Box-only,0px (Oracle Box),719,93.94,4.76,95.35,88.92,12.5,8.53
+MedSAM-LoRA (r=8),Hybrid (Box + Peak Point),0px (Oracle Box),719,93.91,4.79,95.2,88.86,12.6,8.54

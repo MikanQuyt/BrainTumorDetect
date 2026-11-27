@@ -1,0 +1,374 @@
+{
+  "overall_oracle": [
+    {
+      "Mô hình": "Zero-shot MedSAM (Baseline)",
+      "Chiến lược Prompt": "Box-only",
+      "Box Jitter Eval": "0px (Oracle Box)",
+      "Số mẫu": 719,
+      "Dice Mean (%)": 88.54,
+      "Dice SD (%)": 9.91,
+      "Dice Median (%)": 91.33,
+      "IoU Mean (%)": 80.6,
+      "HD95 Mean (px)": 21.51,
+      "HD95 Median (px)": 15.56
+    },
+    {
+      "Mô hình": "MedSAM-LoRA (r=8)",
+      "Chiến lược Prompt": "Box-only",
+      "Box Jitter Eval": "0px (Oracle Box)",
+      "Số mẫu": 719,
+      "Dice Mean (%)": 93.94,
+      "Dice SD (%)": 4.76,
+      "Dice Median (%)": 95.35,
+      "IoU Mean (%)": 88.92,
+      "HD95 Mean (px)": 12.5,
+      "HD95 Median (px)": 8.53
+    },
+    {
+      "Mô hình": "MedSAM-LoRA (r=8)",
+      "Chiến lược Prompt": "Hybrid (Box + Peak Point)",
+      "Box Jitter Eval": "0px (Oracle Box)",
+      "Số mẫu": 719,
+      "Dice Mean (%)": 93.91,
+      "Dice SD (%)": 4.79,
+      "Dice Median (%)": 95.2,
+      "IoU Mean (%)": 88.86,
+      "HD95 Mean (px)": 12.6,
+      "HD95 Median (px)": 8.54
+    }
+  ],
+  "overall_perturbed": [
+    {
+      "Mô hình": "MedSAM-LoRA (r=8)",
+      "Chiến lược Prompt": "Box-only",
+      "Box Jitter Eval": "±15px",
+      "Số mẫu": 719,
+      "Dice Mean (%)": 93.03,
+      "Dice SD (%)": 5.35,
+      "Dice Median (%)": 94.38,
+      "IoU Mean (%)": 87.39,
+      "HD95 Mean (px)": 14.19,
+      "HD95 Median (px)": 10.0
+    },
+    {
+      "Mô hình": "MedSAM-LoRA (r=8)",
+      "Chiến lược Prompt": "Hybrid (Box + Peak Point)",
+      "Box Jitter Eval": "±15px",
+      "Số mẫu": 719,
+      "Dice Mean (%)": 93.01,
+      "Dice SD (%)": 5.44,
+      "Dice Median (%)": 94.41,
+      "IoU Mean (%)": 87.35,
+      "HD95 Mean (px)": 14.15,
+      "HD95 Median (px)": 10.0
+    }
+  ],
+  "per_class": [
+    {
+      "Nhóm bệnh": "Glioma",
+      "Số mẫu": 210,
+      "Zero-shot Dice (%)": 84.16,
+      "LoRA Box Dice (%)": 91.33,
+      "LoRA Hybrid Dice (%)": 91.31,
+      "ΔDice (Hybrid - Box)": -0.02,
+      "LoRA Box IoU (%)": 84.63,
+      "LoRA Hybrid IoU (%)": 84.61,
+      "Zero-shot HD95 (px)": 28.07,
+      "LoRA Box HD95 (px)": 18.92,
+      "LoRA Hybrid HD95 (px)": 19.51,
+      "ΔHD95 (Hybrid - Box)": 0.59
+    },
+    {
+      "Nhóm bệnh": "Meningioma",
+      "Số mẫu": 245,
+      "Zero-shot Dice (%)": 92.65,
+      "LoRA Box Dice (%)": 95.93,
+      "LoRA Hybrid Dice (%)": 95.95,
+      "ΔDice (Hybrid - Box)": 0.02,
+      "LoRA Box IoU (%)": 92.3,
+      "LoRA Hybrid IoU (%)": 92.33,
+      "Zero-shot HD95 (px)": 18.55,
+      "LoRA Box HD95 (px)": 10.56,
+      "LoRA Hybrid HD95 (px)": 9.72,
+      "ΔHD95 (Hybrid - Box)": -0.84
+    },
+    {
+      "Nhóm bệnh": "Pituitary",
+      "Số mẫu": 264,
+      "Zero-shot Dice (%)": 88.2,
+      "LoRA Box Dice (%)": 94.18,
+      "LoRA Hybrid Dice (%)": 94.08,
+      "ΔDice (Hybrid - Box)": -0.1,
+      "LoRA Box IoU (%)": 89.19,
+      "LoRA Hybrid IoU (%)": 89.01,
+      "Zero-shot HD95 (px)": 19.04,
+      "LoRA Box HD95 (px)": 9.21,
+      "LoRA Hybrid HD95 (px)": 9.8,
+      "ΔHD95 (Hybrid - Box)": 0.59
+    }
+  ],
+  "statistical_tests": {
+    "oracle_dice_box_vs_hybrid": {
+      "n": 719,
+      "mean_box": 0.9394486685356812,
+      "mean_hybrid": 0.9391102680788316,
+      "mean_diff": -0.00033840045684940736,
+      "wilcoxon_p": 3.9781321175622065e-05,
+      "paired_t_p": 0.47815067623457697
+    },
+    "oracle_hd95_box_vs_hybrid": {
+      "n": 719,
+      "mean_box": 12.504425978230648,
+      "mean_hybrid": 12.604979569826291,
+      "mean_diff": 0.10055359159564217,
+      "wilcoxon_p": 0.004618163968279455,
+      "paired_t_p": 0.6710742366785909
+    },
+    "perturbed_dice_box_vs_hybrid": {
+      "n": 719,
+      "mean_box": 0.930325378160262,
+      "mean_hybrid": 0.9300602863270901,
+      "mean_diff": -0.00026509183317188734,
+      "wilcoxon_p": 0.4164708177794676,
+      "paired_t_p": 0.6485562368729512
+    },
+    "perturbed_hd95_box_vs_hybrid": {
+      "n": 719,
+      "mean_box": 14.188542397123449,
+      "mean_hybrid": 14.146248691157115,
+      "mean_diff": -0.042293705966330704,
+      "wilcoxon_p": 0.9751675979279811,
+      "paired_t_p": 0.8598188328258275
+    }
+  },
+  "raw": {
+    "zeroshot_box": {
+      "n": 719,
+      "n_pred_empty": 0,
+      "dice": {
+        "mean": 0.8853688769485709,
+        "sd": 0.09909862883632796,
+        "median": 0.9132532594189509
+      },
+      "iou": {
+        "mean": 0.8060079063198715,
+        "sd": 0.13390900482828957,
+        "median": 0.8403551860948423
+      },
+      "hd95": {
+        "mean": 21.509608817081205,
+        "sd": 22.77699577928087,
+        "median": 15.556349186104045
+      },
+      "hd95_n_undefined": 0
+    },
+    "lora_box": {
+      "overall": {
+        "n": 719,
+        "n_pred_empty": 0,
+        "dice": {
+          "mean": 0.9394486685356812,
+          "sd": 0.047641034010625936,
+          "median": 0.9534932748661298
+        },
+        "iou": {
+          "mean": 0.8891921836188841,
+          "sd": 0.07581601639063487,
+          "median": 0.9111200644641418
+        },
+        "hd95": {
+          "mean": 12.504425978230648,
+          "sd": 14.130499073517578,
+          "median": 8.52932315254779
+        },
+        "hd95_n_undefined": 0
+      },
+      "per_class": {
+        "glioma": {
+          "n": 210,
+          "n_pred_empty": 0,
+          "dice": {
+            "mean": 0.9133088822890432,
+            "sd": 0.06571258490244032,
+            "median": 0.9287450091751928
+          },
+          "iou": {
+            "mean": 0.8463491699080434,
+            "sd": 0.098705791097196,
+            "median": 0.8669697471908093
+          },
+          "hd95": {
+            "mean": 18.918191165069956,
+            "sd": 19.47544206204468,
+            "median": 13.0
+          },
+          "hd95_n_undefined": 0
+        },
+        "meningioma": {
+          "n": 245,
+          "n_pred_empty": 0,
+          "dice": {
+            "mean": 0.9593165299359069,
+            "sd": 0.026715532922750678,
+            "median": 0.965829722031604
+          },
+          "iou": {
+            "mean": 0.923012676428186,
+            "sd": 0.046929044943121105,
+            "median": 0.9339175014089116
+          },
+          "hd95": {
+            "mean": 10.557012166035648,
+            "sd": 12.794048025216858,
+            "median": 7.615773105863909
+          },
+          "hd95_n_undefined": 0
+        },
+        "pituitary": {
+          "n": 264,
+          "n_pred_empty": 0,
+          "dice": {
+            "mean": 0.941803702886964,
+            "sd": 0.03440521034942321,
+            "median": 0.950892889402192
+          },
+          "iou": {
+            "mean": 0.8918854114256934,
+            "sd": 0.058037581320118055,
+            "median": 0.9063832298098724
+          },
+          "hd95": {
+            "mean": 9.209826337137924,
+            "sd": 6.675089789911756,
+            "median": 7.193295199191546
+          },
+          "hd95_n_undefined": 0
+        }
+      }
+    },
+    "lora_hybrid": {
+      "overall": {
+        "n": 719,
+        "n_pred_empty": 0,
+        "dice": {
+          "mean": 0.9391102680788316,
+          "sd": 0.04794727035255649,
+          "median": 0.9520179372197309
+        },
+        "iou": {
+          "mean": 0.8885697672939173,
+          "sd": 0.07513503786633954,
+          "median": 0.9084296106118956
+        },
+        "hd95": {
+          "mean": 12.604979569826291,
+          "sd": 13.268620760899678,
+          "median": 8.54400374531753
+        },
+        "hd95_n_undefined": 0
+      },
+      "per_class": {
+        "glioma": {
+          "n": 210,
+          "n_pred_empty": 0,
+          "dice": {
+            "mean": 0.9131139330805487,
+            "sd": 0.06729952297676389,
+            "median": 0.9277711092618142
+          },
+          "iou": {
+            "mean": 0.8461133033470626,
+            "sd": 0.09834091912424706,
+            "median": 0.8652733769723427
+          },
+          "hd95": {
+            "mean": 19.507937737588005,
+            "sd": 19.81814813894855,
+            "median": 15.019134428487668
+          },
+          "hd95_n_undefined": 0
+        },
+        "meningioma": {
+          "n": 245,
+          "n_pred_empty": 0,
+          "dice": {
+            "mean": 0.9595394730187081,
+            "sd": 0.024855716168155795,
+            "median": 0.9652667655634559
+          },
+          "iou": {
+            "mean": 0.9232738481255182,
+            "sd": 0.04408984521471349,
+            "median": 0.9328653351789599
+          },
+          "hd95": {
+            "mean": 9.71500446575245,
+            "sd": 7.917165522082331,
+            "median": 7.615773105863909
+          },
+          "hd95_n_undefined": 0
+        },
+        "pituitary": {
+          "n": 264,
+          "n_pred_empty": 0,
+          "dice": {
+            "mean": 0.9408302496673534,
+            "sd": 0.034239933785092956,
+            "median": 0.9480037158336458
+          },
+          "iou": {
+            "mean": 0.8901355158738314,
+            "sd": 0.05795997730089248,
+            "median": 0.9011473998798278
+          },
+          "hd95": {
+            "mean": 9.795974589781332,
+            "sd": 7.524738526019215,
+            "median": 7.419082052531345
+          },
+          "hd95_n_undefined": 0
+        }
+      }
+    },
+    "lora_box_jitter": {
+      "n": 719,
+      "n_pred_empty": 0,
+      "dice": {
+        "mean": 0.930325378160262,
+        "sd": 0.05347388073530756,
+        "median": 0.9438269036438209
+      },
+      "iou": {
+        "mean": 0.8739091768311412,
+        "sd": 0.08424880553274455,
+        "median": 0.8936289959477712
+      },
+      "hd95": {
+        "mean": 14.188542397123449,
+        "sd": 14.564367816059036,
+        "median": 10.0
+      },
+      "hd95_n_undefined": 0
+    },
+    "lora_hybrid_jitter": {
+      "n": 719,
+      "n_pred_empty": 0,
+      "dice": {
+        "mean": 0.9300602863270901,
+        "sd": 0.0543707250463279,
+        "median": 0.9440930422362783
+      },
+      "iou": {
+        "mean": 0.8735340618727624,
+        "sd": 0.08480972724522265,
+        "median": 0.8941062801932367
+      },
+      "hd95": {
+        "mean": 14.146248691157115,
+        "sd": 14.071489783145857,
+        "median": 10.0
+      },
+      "hd95_n_undefined": 0
+    }
+  }
+}

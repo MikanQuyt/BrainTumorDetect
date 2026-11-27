@@ -49,7 +49,8 @@ BrainTumorDetect/
 │   ├── Week3_ViT-LoRA_DS12.ipynb                     # [Tuần 3] DS1 (5-Fold CV) & DS2 + Threshold Moving + Localization (Huy)
 │   ├── Week3_ViT_LoRA_BRISC2025_Ablation_Colab.ipynb # [Tuần 3] BRISC 2025 Binary/Multiclass + Ablation r ∈ {4,8,16,32} vs Full FT (Hải)
 │   ├── Week3_ViT_LoRA_BraTS2020_Colab.ipynb          # [Tuần 3] BraTS2020 3-kênh [FLAIR, T1ce, T2] vs 1-kênh T1ce (Bảo)
-│   └── Week4_MedSAM_LoRA_Colab.ipynb                 # [Tuần 4] Huấn luyện & đánh giá MedSAM-LoRA (r=8, Dice+Focal/BCE, Box Jittering ±10px)
+│   ├── Week4_MedSAM_LoRA_Colab.ipynb                 # [Tuần 4] Huấn luyện & đánh giá MedSAM-LoRA (r=8, Dice+Focal/BCE, Box Jittering ±10px)
+│   └── Week4_MedSAM_LoRA_BRISC2025_Hai_Colab.ipynb   # [Tuần 4] BRISC 2025 theo nhóm bệnh (Glioma/Meningioma/Pituitary) & Ablation Box vs Hybrid (Hải)
 ├── eval/                           # Kịch bản Đánh giá & Kiểm định Thống kê Zero-shot SAM vs MedSAM (Tuần 2)
 │   ├── zeroshot_oracle_eval.py
 │   ├── make_ds2_val_split.py
@@ -85,17 +86,29 @@ BrainTumorDetect/
 - [medsam_oracle_box_brisc2025_qualitative_grid.png](image/tuan2/medsam_oracle_box_brisc2025_qualitative_grid.png) & [zeroshot_sam_vs_medsam_dice_boxplot.png](image/tuan2/zeroshot_sam_vs_medsam_dice_boxplot.png): Đánh giá Zero-shot MedSAM (`medsam_vit_b.pth`) và SAM gốc với Oracle Box trên DS2, DS3, DS4.
 - [sam_everything_summary_figure.png](image/tuan2/sam_everything_summary_figure.png): Kiểm thử `SAM Everything Mode` trên 50 ảnh chứng minh `89,77%` mask tự động bắt nhầm xương sọ và mô não lành khi thiếu nhánh định vị ViT.
 
-### Tuần 3 (`image/tuan3/`) — Kiến trúc `ViT-LoRA` & Bộ Tự sinh Lời nhắc (`Auto-Prompt Generator`)
-- [fig1_lora_params_and_training_curves.png](image/tuan3/fig1_lora_params_and_training_curves.png): Đối sánh tham số LoRA $r \in \{4, 8, 16, 32\}$ (`r=8` chỉ chiếm `0,34%` backbone; tổng tham số `< 1%`) và hội tụ `Focal Loss (ε=0.05)` + `GIoU + L1 Box Loss`.
-- [fig2_mechanism1_rollout_layercam_ds1.png](image/tuan3/fig2_mechanism1_rollout_layercam_ds1.png): Cơ chế (1) kết hợp `Attention Rollout + LayerCAM` + Lọc viền sọ sinh `Hybrid Prompt` trên Dataset 1 (`Navoneel`).
-- [fig3_mechanism2_vitdet_box_head_ds2_ds3_ds4.png](image/tuan3/fig3_mechanism2_vitdet_box_head_ds2_ds3_ds4.png): Cơ chế (2) `ViTDetBoxHead` dẫn đường cho `MedSAM` trên DS2 (`Dice = 93,86%`), DS3 (`Dice = 87,31%`), DS4 (`Dice = 78,24%`).
+### Tuần 3 (`image/tuan3/` & `reports/tuan3/`) — Huấn luyện `ViT-LoRA` & Ablation Study Hạng LoRA ($r \in \{4, 8, 16, 32\}$)
+- **Báo cáo Khoa học Tuần 3**: [reports/tuan3/BAO_CAO_TUAN3.md](reports/tuan3/BAO_CAO_TUAN3.md), [reports/tuan3/vit_lora_hai/tuan3_multiclass_results.md](reports/tuan3/vit_lora_hai/tuan3_multiclass_results.md) & Bản Word y khoa [reports/tuan3/BRISC2025_LoRA_Experiments.docx](reports/tuan3/BRISC2025_LoRA_Experiments.docx).
+- **Google Colab Notebook Tuần 3**:
+  - [notebooks/Week3_ViT_LoRA_BRISC2025_Ablation_Colab.ipynb](notebooks/Week3_ViT_LoRA_BRISC2025_Ablation_Colab.ipynb)
+  - [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/MikanQuyt/BrainTumorDetect/blob/Nguyen_Thanh_Hai_tuan3/notebooks/week3_vit_lora_brisc2025_colab.ipynb) → [notebooks/week3_vit_lora_brisc2025_colab.ipynb](notebooks/week3_vit_lora_brisc2025_colab.ipynb)
+- [fig1_ablation_multiclass_rank_study.png](image/tuan3/fig1_ablation_multiclass_rank_study.png): Khảo sát đối sánh 4 cấu hình $r \in \{4, 8, 16, 32\}$ vs Full Fine-tuning trên BRISC 2025 đa lớp.
+- [fig2_ablation_binary_rank_study.png](image/tuan3/fig2_ablation_binary_rank_study.png): Khảo sát bài toán phân loại nhị phân Có u / Không u.
+- [fig3_radar_comparison_architectures.png](image/tuan3/fig3_radar_comparison_architectures.png): Biểu đồ Radar đối chiếu 6 chiều hiệu năng giữa Linear Probing, Full Fine-tuning và ViT-LoRA ($r=8$).
+- [fig1_lora_params_and_training_curves.png](image/tuan3/fig1_lora_params_and_training_curves.png): Đối sánh tham số LoRA $r \in \{4, 8, 16, 32\}$ và hội tụ `Focal Loss (ε=0.05)` + `GIoU + L1 Box Loss`.
+- [fig2_mechanism1_rollout_layercam_ds1.png](image/tuan3/fig2_mechanism1_rollout_layercam_ds1.png): Cơ chế (1) kết hợp `Attention Rollout + LayerCAM` + Lọc viền sọ trên DS1.
+- [fig3_mechanism2_vitdet_box_head_ds2_ds3_ds4.png](image/tuan3/fig3_mechanism2_vitdet_box_head_ds2_ds3_ds4.png): Cơ chế (2) `ViTDetBoxHead` dẫn đường cho `MedSAM` trên DS2, DS3, DS4.
+
+### Tuần 4 (`notebooks/Week4_*`) — `MedSAM-LoRA (r = 8)` trên BRISC 2025 & Ablation Prompt (`Box` vs `Hybrid`)
+- **Google Colab Notebook Tuần 4 (Nguyễn Thanh Hải — BRISC 2025 theo Nhóm Bệnh & Ablation `Box` vs `Hybrid`):**  
+  [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/MikanQuyt/BrainTumorDetect/blob/Nguyen_Thanh_Hai_tuan4/notebooks/Week4_MedSAM_LoRA_BRISC2025_Hai_Colab.ipynb)  
+  → [notebooks/Week4_MedSAM_LoRA_BRISC2025_Hai_Colab.ipynb](notebooks/Week4_MedSAM_LoRA_BRISC2025_Hai_Colab.ipynb)
 
 ---
 
 ## 3. Hướng dẫn Chạy Kiểm thử & Huấn luyện Toàn Hệ thống
 
 ```powershell
-# 1. Chạy toàn bộ bộ kiểm thử tự động (74 Unit Tests Tuần 1–4)
+# 1. Chạy toàn bộ bộ kiểm thử tự động (Unit Tests Tuần 1–4)
 .\venv\Scripts\python.exe -m unittest discover -s tests -v
 
 # 2. Huấn luyện ViT-LoRA (r=8, α=16) + ViTDetBoxHead trên toàn bộ hệ thống đa bộ dữ liệu (DS1, DS2, DS3, DS4)
@@ -108,7 +121,8 @@ BrainTumorDetect/
 .\venv\Scripts\python.exe -m engine.eval_sam --datasets indk214 brisc2025 brats2020 --split test --out runs/eval_sam_all
 
 # 5. Huấn luyện MedSAM-LoRA (r=8, α=16, L_Seg = 0.5 L_Dice + 0.5 L_Focal/BCE, Box Jittering ±10px) — Tuần 4
-.\venv\Scripts\python.exe -m engine.train_medsam_lora --datasets indk214 brisc2025 brats2020 --lora-r 8 --lora-alpha 16 --loss-mode focal --box-jitter 10 --amp --out runs/medsam_lora_all
+.\venv\Scripts\python.exe -m engine.train_medsam_lora --datasets brisc2025 --lora-r 8 --lora-alpha 16 --loss-mode focal --box-jitter 10 --prompt-mode box --amp --out runs/medsam_lora_ds3_box
+.\venv\Scripts\python.exe -m engine.train_medsam_lora --datasets brisc2025 --lora-r 8 --lora-alpha 16 --loss-mode focal --box-jitter 10 --prompt-mode hybrid --amp --out runs/medsam_lora_ds3_hybrid
 
 # 6. Sinh bộ ảnh kết quả trực quan Tuần 3 vào image/tuan3/
 .\venv\Scripts\python.exe experiments/generate_week3_hnnq_visuals.py

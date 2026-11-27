@@ -281,6 +281,22 @@ class ViTLoRA(nn.Module):
             lora_dropout=self.lora_dropout,
             bias="none",
         )
+        # Vá lỗi không tương thích phiên bản torchao trên môi trường Google Colab (torchao < 0.16.0)
+        try:
+            import peft.import_utils
+            _orig_is_torchao_available = getattr(peft.import_utils, "is_torchao_available", None)
+            if _orig_is_torchao_available is not None:
+                def _safe_is_torchao_available():
+                    try:
+                        return _orig_is_torchao_available()
+                    except (ImportError, Exception):
+                        return False
+                peft.import_utils.is_torchao_available = _safe_is_torchao_available
+                from peft.tuners.lora import torchao as _peft_torchao
+                _peft_torchao.is_torchao_available = _safe_is_torchao_available
+        except Exception:
+            pass
+
         self.backbone = get_peft_model(backbone, lora_cfg)
         self.hidden = int(self.backbone.config.hidden_size)
         self.num_layers = int(self.backbone.config.num_hidden_layers)

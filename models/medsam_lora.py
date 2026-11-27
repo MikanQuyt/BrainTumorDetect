@@ -25,7 +25,7 @@ import torch
 import torch.nn.functional as F
 from torch import nn
 
-__all__ = ["LoRAQKV", "MedSamLoRA", "jitter_boxes", "inject_lora_into_image_encoder"]
+__all__ = ["LoRAQKV", "MedSamLoRA", "jitter_boxes", "extract_peak_points", "inject_lora_into_image_encoder"]
 
 
 class LoRAQKV(nn.Module):
@@ -93,6 +93,92 @@ def jitter_boxes(
     x0 = torch.minimum(x0, x1 - min_size).clamp(min=0.0)
     y0 = torch.minimum(y0, y1 - min_size).clamp(min=0.0)
     return torch.stack([x0, y0, x1, y1], dim=1).to(boxes.dtype)
+
+
+@torch.no_grad()
+def extract_peak_points(
+    images_1024: torch.Tensor,
+    boxes_1024: torch.Tensor,
+    inner_margin: float = 0.10,
+) -> tuple[torch.Tensor, torch.Tensor]:
+    """Trích xuất tâm điểm dương cực đại (Peak Positive Point) bên trong hộp mà KHÔNG dùng gt_mask.
+
+    Kết hợp:
+      1. Tương phản cường độ cục bộ so với vành nhu mô bao quanh hộp (bắt cả khối u tăng sáng lẫn giảm sáng).
+      2. Bất đối xứng bán cầu não trái-phải.
+      3. Trọng số ưu tiên vùng lõi trung tâm hộp (giảm thiểu chọn nhầm mép vỏ xương/ranh giới hộp).
+
+    Returns:
+        coords: Tensor hình (B, 1, 2) tọa độ [x, y] theo pixel ảnh gốc.
+        labels: Tensor hình (B, 1) toàn giá trị 1 (điểm dương foreground).
+    """
+    b, _, h, w = images_1024.shape
+    device = images_1024.device
+    gray = images_1024.detach().float().mean(dim=1, keepdim=True)
+    gh, gw = min(h, 256), min(w, 256)
+    if (gh, gw) != (h, w):
+        work = F.interpolate(gray, size=(gh, gw), mode="bilinear", align_corners=False)
+    else:
+        work = gray
+    k = 5 if min(gh, gw) >= 32 else 3
+    smooth = F.avg_pool2d(work, kernel_size=k, stride=1, padding=k // 2)
+    asym = (smooth - torch.flip(smooth, dims=[-1])).abs()
+
+    sx, sy = gw / float(w), gh / float(h)
+    coords = torch.zeros((b, 1, 2), dtype=torch.float32, device=device)
+    labels = torch.ones((b, 1), dtype=torch.long, device=device)
+
+    for i in range(b):
+        bx0, by0, bx1, by1 = boxes_1024[i].detach().float().tolist()
+        x0, x1 = max(0.0, min(bx0, bx1)), min(float(w), max(bx0, bx1))
+        y0, y1 = max(0.0, min(by0, by1)), min(float(h), max(by0, by1))
+        bw, bh = max(1.0, x1 - x0), max(1.0, y1 - y0)
+
+        # Thu hẹp biên hộp (inner_margin) để điểm dương nằm trong lõi khối u
+        mx = inner_margin * bw
+        my = inner_margin * bh
+        ix0_px = min(max(x0 + mx, x0), x1)
+        ix1_px = max(min(x1 - mx, x1), ix0_px)
+        iy0_px = min(max(y0 + my, y0), y1)
+        iy1_px = max(min(y1 - my, y1), iy0_px)
+
+        gx0 = min(max(int(math.floor(ix0_px * sx)), 0), gw - 1)
+        gx1 = max(min(int(math.ceil(ix1_px * sx)), gw), gx0 + 1)
+        gy0 = min(max(int(math.floor(iy0_px * sy)), 0), gh - 1)
+        gy1 = max(min(int(math.ceil(iy1_px * sy)), gh), gy0 + 1)
+
+        # Vành ngoài mở rộng +25% hộp để ước lượng nền nhu mô lân cận (tính |I - bg_mean|)
+        ox0 = max(int(math.floor((x0 - 0.25 * bw) * sx)), 0)
+        ox1 = min(int(math.ceil((x1 + 0.25 * bw) * sx)), gw)
+        oy0 = max(int(math.floor((y0 - 0.25 * bh) * sy)), 0)
+        oy1 = min(int(math.ceil((y1 + 0.25 * bh) * sy)), gh)
+        outer_patch = smooth[i, 0, oy0:oy1, ox0:ox1]
+        bg_ref = outer_patch.mean() if outer_patch.numel() > 0 else smooth[i, 0].mean()
+
+        crop_s = smooth[i, 0, gy0:gy1, gx0:gx1]
+        crop_a = asym[i, 0, gy0:gy1, gx0:gx1]
+        contrast = (crop_s - bg_ref).abs()
+
+        def _norm01(t: torch.Tensor) -> torch.Tensor:
+            d = t.max() - t.min()
+            return (t - t.min()) / d if float(d) > 1e-6 else torch.zeros_like(t)
+
+        sal = 0.65 * _norm01(contrast) + 0.35 * _norm01(crop_a)
+
+        ch, cw = sal.shape
+        cy = torch.linspace(-1.0, 1.0, ch, device=device).view(ch, 1)
+        cx = torch.linspace(-1.0, 1.0, cw, device=device).view(1, cw)
+        center_prior = (1.0 - 0.30 * (cx * cx + cy * cy)).clamp(min=0.40)
+        score = (sal + 0.25) * center_prior
+
+        flat_idx = int(torch.argmax(score).item())
+        py_idx, px_idx = divmod(flat_idx, cw)
+        px = ((gx0 + px_idx + 0.5) / sx)
+        py = ((gy0 + py_idx + 0.5) / sy)
+        coords[i, 0, 0] = min(max(px, x0), x1)
+        coords[i, 0, 1] = min(max(py, y0), y1)
+
+    return coords, labels
 
 
 class MedSamLoRA(nn.Module):
@@ -176,10 +262,19 @@ class MedSamLoRA(nn.Module):
         image_pe = self.sam.prompt_encoder.get_dense_pe()
         bs = images_1024.shape[0]
 
+        pt_coords = pt_labels = None
+        if points is not None:
+            pt_coords = points[0].float()
+            pt_labels = points[1].long()
+            if pt_coords.ndim == 2:
+                pt_coords = pt_coords.unsqueeze(1)
+            if pt_labels.ndim == 1:
+                pt_labels = pt_labels.unsqueeze(1)
+
         low_res_list = []
         for i in range(bs):
             box_i = boxes_1024[i : i + 1].float()[:, None, :]
-            pts_i = (points[0][i : i + 1], points[1][i : i + 1]) if points is not None else None
+            pts_i = (pt_coords[i : i + 1], pt_labels[i : i + 1]) if pt_coords is not None else None
             with torch.no_grad():
                 sparse_i, dense_i = self.sam.prompt_encoder(points=pts_i, boxes=box_i, masks=None)
             low_i, _ = self.sam.mask_decoder(
@@ -197,8 +292,14 @@ class MedSamLoRA(nn.Module):
         return F.interpolate(low_res, size=images_1024.shape[-2:], mode="bilinear", align_corners=False)
 
     @torch.no_grad()
-    def predict_masks(self, images_1024: torch.Tensor, boxes_1024: torch.Tensor, threshold: float = 0.5) -> torch.Tensor:
-        return torch.sigmoid(self.forward(images_1024, boxes_1024)) > threshold
+    def predict_masks(
+        self,
+        images_1024: torch.Tensor,
+        boxes_1024: torch.Tensor,
+        points: tuple[torch.Tensor, torch.Tensor] | None = None,
+        threshold: float = 0.5,
+    ) -> torch.Tensor:
+        return torch.sigmoid(self.forward(images_1024, boxes_1024, points=points)) > threshold
 
     # ------------------------------------------------------------------ lưu / nạp
     def trainable_state_dict(self) -> dict:

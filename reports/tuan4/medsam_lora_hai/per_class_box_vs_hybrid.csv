@@ -1,0 +1,4 @@
+Nhóm bệnh,Số mẫu,Zero-shot Dice (%),LoRA Box Dice (%),LoRA Hybrid Dice (%),ΔDice (Hybrid - Box),LoRA Box IoU (%),LoRA Hybrid IoU (%),Zero-shot HD95 (px),LoRA Box HD95 (px),LoRA Hybrid HD95 (px),ΔHD95 (Hybrid - Box)
+Glioma,210,84.16,91.33,91.31,-0.02,84.63,84.61,28.07,18.92,19.51,0.59
+Meningioma,245,92.65,95.93,95.95,0.02,92.3,92.33,18.55,10.56,9.72,-0.84
+Pituitary,264,88.2,94.18,94.08,-0.1,89.19,89.01,19.04,9.21,9.8,0.59
